@@ -66,7 +66,6 @@
         .file-item-clicker { flex-grow: 1; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .delete-btn { color: #ff4444; font-size: 12px; cursor: pointer; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; z-index: 10; }
         .delete-btn:hover { background: rgba(255, 68, 68, 0.2); }
-        .sortable-ghost { opacity: 0.4; background: #161f30 !important; border: 1px dashed var(--accent-neon); }
         
         .editor-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100%; transition: width 0.3s ease; }
         #editor { flex-grow: 1; width: 100%; background: #090d16 !important; font-size: 16px; }
@@ -92,14 +91,18 @@
         /* Keyboard Sub Bar Overlay */
         .shortcut-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0d14; border-top: 1px solid #242b35; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; box-sizing: border-box; z-index: 9999; }
         .shortcut-bar.hidden { display: none; }
-        .shortcut-row { display: flex; overflow-x: auto; gap: 4px; padding: 2px 4px; -webkit-overflow-scrolling: touch; }
+        .shortcut-row { display: flex; overflow-x: auto; gap: 4px; padding: 4px 2px; -webkit-overflow-scrolling: touch; }
         .shortcut-row::-webkit-scrollbar { display: none; }
         
         .shortcut-btn { background: #141822; color: #ffffff; border: 1px solid #242b35; border-radius: 6px; min-width: 44px; height: 36px; font-family: monospace; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
         .special-btn { font-size: 11px; color: #9ca3af; font-weight: bold; background: #0f121a; }
         .shortcut-btn.ctrl-active { background: var(--accent-neon) !important; color: #000 !important; font-weight: bold; }
-        .shortcut-row.sorting-active { border: 1px dashed var(--accent-neon); }
         
+        /* Arrange Keys Mode Active Accent Styling */
+        .shortcut-row.sorting-active { border: 1px dashed var(--accent-neon); background: rgba(0, 255, 204, 0.05); }
+        .shortcut-row.sorting-active .shortcut-btn { cursor: move; border-color: var(--accent-neon); }
+        .sortable-ghost { opacity: 0.3; background: #1e293b !important; }
+
         .padding-bottom-fix { height: 90px; background: transparent; }
     </style>
 </head>
@@ -124,7 +127,8 @@
             <button class="nav-btn" onclick="adjustFontSize(1)">➕ Font</button>
             <button class="nav-btn" onclick="adjustFontSize(-1)">➖ Font</button>
             <button class="nav-btn" onclick="downloadCode()">📥 Export .py</button>
-            <button class="nav-btn" id="sortToggle" onclick="toggleSorting()">⚙️ Sort</button>
+            <!-- ⚙️ Dynamic Key Reordering Handler replaces Old File Sorting Toggle -->
+            <button class="nav-btn" id="keysSortToggle" onclick="toggleKeysSorting()">⚙️ Arrange Keys</button>
             <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('for')">⚡ Loop</button>
             <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('def')">⚡ Func</button>
         </div>
@@ -183,29 +187,31 @@
     <!-- Smart Virtual Key Control Deck -->
     <div class="shortcut-bar" id="keyboard-bar">
         <div class="shortcut-row" id="row1">
-            <div class="shortcut-btn special-btn" id="ctrl-btn" data-id="ctrl" onclick="toggleCtrlKey()">CTRL</div>
-            <div class="shortcut-btn special-btn" data-id="tab" onclick="insertSymbol('    ')">➔|</div>
-            <div class="shortcut-btn special-btn" data-id="shft">SHFT</div>
-            <div class="shortcut-btn special-btn" data-id="undo" onclick="editor.undo()">↩</div>
-            <div class="shortcut-btn special-btn" data-id="redo" onclick="editor.redo()">↪</div>
-            <div class="shortcut-btn special-btn" data-id="find" onclick="editor.execCommand('find')">🔍</div>
-            <div class="shortcut-btn special-btn" data-id="selectall" onclick="editor.selectAll(); editor.focus();">⌘A</div>
-            <div class="shortcut-btn special-btn" data-id="esc">ESC</div>
+            <!-- Row 1 Keys wrapped dynamically with specific data-keys bindings -->
+            <div class="shortcut-btn special-btn" id="ctrl-btn" data-key="ctrl" onclick="toggleCtrlKey()">CTRL</div>
+            <div class="shortcut-btn special-btn" data-key="tab" onclick="insertSymbol('    ')">➔|</div>
+            <div class="shortcut-btn special-btn" data-key="shft">SHFT</div>
+            <div class="shortcut-btn special-btn" data-key="undo" onclick="editor.undo()">↩</div>
+            <div class="shortcut-btn special-btn" data-key="redo" onclick="editor.redo()">↪</div>
+            <div class="shortcut-btn special-btn" data-key="find" onclick="editor.execCommand('find')">🔍</div>
+            <div class="shortcut-btn special-btn" data-key="selectall" onclick="editor.selectAll(); editor.focus();">⌘A</div>
+            <div class="shortcut-btn special-btn" data-key="esc">ESC</div>
         </div>
         <div class="shortcut-row" id="row2">
-            <div class="shortcut-btn" data-id="semi" onclick="insertSymbol(';')">;</div>
-            <div class="shortcut-btn" data-id="squote" onclick="insertSymbol('\'')">'</div>
-            <div class="shortcut-btn" data-id="dquote" onclick="insertSymbol('\"')">"</div>
-            <div class="shortcut-btn" data-id="and" onclick="insertSymbol('&amp;')">&amp;</div>
-            <div class="shortcut-btn" data-id="or" onclick="insertSymbol('|')">|</div>
-            <div class="shortcut-btn" data-id="eq" onclick="insertSymbol('=')">=</div>
-            <div class="shortcut-btn" data-id="slash" onclick="insertSymbol('/')">/</div>
-            <div class="shortcut-btn" data-id="excl" onclick="insertSymbol('!')">!</div>
-            <div class="shortcut-btn" data-id="colon" onclick="insertSymbol(':')">:</div>
-            <div class="shortcut-btn" data-id="lparen" onclick="insertSymbol('(')">(</div>
-            <div class="shortcut-btn" data-id="rparen" onclick="insertSymbol(')')">)</div>
-            <div class="shortcut-btn" data-id="lbracket" onclick="insertSymbol('[')">[</div>
-            <div class="shortcut-btn" data-id="rbracket" onclick="insertSymbol(']')">]</div>
+            <!-- Row 2 Symbol Keys -->
+            <div class="shortcut-btn" data-key="semi" onclick="insertSymbol(';')">;</div>
+            <div class="shortcut-btn" data-key="squote" onclick="insertSymbol('\'')">'</div>
+            <div class="shortcut-btn" data-key="dquote" onclick="insertSymbol('\"')">"</div>
+            <div class="shortcut-btn" data-key="and" onclick="insertSymbol('&amp;')">&amp;</div>
+            <div class="shortcut-btn" data-key="or" onclick="insertSymbol('|')">|</div>
+            <div class="shortcut-btn" data-key="eq" onclick="insertSymbol('=')">=</div>
+            <div class="shortcut-btn" data-key="slash" onclick="insertSymbol('/')">/</div>
+            <div class="shortcut-btn" data-key="excl" onclick="insertSymbol('!')">!</div>
+            <div class="shortcut-btn" data-key="colon" onclick="insertSymbol(':')">:</div>
+            <div class="shortcut-btn" data-key="lparen" onclick="insertSymbol('(')">(</div>
+            <div class="shortcut-btn" data-key="rparen" onclick="insertSymbol(')')">)</div>
+            <div class="shortcut-btn" data-key="lbracket" onclick="insertSymbol('[')">[</div>
+            <div class="shortcut-btn" data-key="rbracket" onclick="insertSymbol(']')">]</div>
         </div>
     </div>
 
@@ -221,8 +227,10 @@
         };
         let activeFile = "main.py";
         
-        let sortableInstance = null;
-        let isSortingActive = false;
+        // 🔄 Sortable engine targets for keyboard rows
+        let sortableRow1 = null;
+        let sortableRow2 = null;
+        let isKeysSortingActive = false;
 
         let currentFontSize = 16;
         const editor = ace.edit("editor");
@@ -230,6 +238,9 @@
         editor.session.setMode("ace/mode/python");
         editor.setShowPrintMargin(false);
         editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: currentFontSize + "px", wrap: false });
+
+        // Load Custom Keyboard Layout Order from Cloud Storage Cache if exists
+        loadKeyboardLayoutOrder();
 
         editor.on("input", () => {
             virtualFiles[activeFile] = editor.getValue();
@@ -246,23 +257,18 @@
             } catch(e){}
         });
 
-        // 📂 Sidebar Open/Close Feature Logic
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar-panel');
             sidebar.classList.toggle('closed');
             setTimeout(() => { editor.resize(); }, 310);
         }
 
-        // Updated Render Setup with Sort & Delete Actions
         function renderSidebar() {
             const container = document.getElementById('files-container');
             container.innerHTML = "";
             Object.keys(virtualFiles).forEach(filename => {
                 const item = document.createElement('div');
                 item.className = `file-item ${filename === activeFile ? 'active' : ''}`;
-                item.setAttribute('data-filename', filename);
-                
-                // Segment block triggers to prevent simultaneous delete/open clicks
                 item.innerHTML = `
                     <div class="file-item-clicker" onclick="switchToFile('${filename}')">
                         <span>📄 ${filename}</span>
@@ -271,11 +277,6 @@
                 `;
                 container.appendChild(item);
             });
-            
-            // Retain Sortable state if user reorders during active toggle
-            if (isSortingActive) {
-                attachSortable();
-            }
         }
 
         function deleteFile(filename) {
@@ -294,46 +295,69 @@
             }
         }
 
-        function toggleSorting() {
-            const btn = document.getElementById('sortToggle');
-            isSortingActive = !isSortingActive;
+        // ⚙️ Keyboard Buttons Sorting Switch Logic
+        function toggleKeysSorting() {
+            const btn = document.getElementById('keysSortToggle');
+            const row1 = document.getElementById('row1');
+            const row2 = document.getElementById('row2');
+            isKeysSortingActive = !isKeysSortingActive;
 
-            if (isSortingActive) {
+            if (isKeysSortingActive) {
                 btn.style.background = "var(--accent-neon)";
                 btn.style.color = "#000";
                 btn.style.fontWeight = "bold";
-                attachSortable();
+                btn.innerText = "💾 Save Layout";
+                
+                row1.classList.add('sorting-active');
+                row2.classList.add('sorting-active');
+
+                // Initialize Sortable layout injection on key rows
+                sortableRow1 = new Sortable(row1, { animation: 150, ghostClass: 'sortable-ghost' });
+                sortableRow2 = new Sortable(row2, { animation: 150, ghostClass: 'sortable-ghost' });
             } else {
                 btn.style.background = "#1f2937";
                 btn.style.color = "#fff";
                 btn.style.fontWeight = "normal";
-                if (sortableInstance) {
-                    sortableInstance.destroy();
-                    sortableInstance = null;
-                }
+                btn.innerText = "⚙️ Arrange Keys";
+                
+                row1.classList.remove('sorting-active');
+                row2.classList.remove('sorting-active');
+
+                // Kill sortable listening instances & cache the custom orders
+                if (sortableRow1) { sortableRow1.destroy(); sortableRow1 = null; }
+                if (sortableRow2) { sortableRow2.destroy(); sortableRow2 = null; }
+                
+                saveKeyboardLayoutOrder();
             }
         }
 
-        function attachSortable() {
-            const container = document.getElementById('files-container');
-            if (sortableInstance) sortableInstance.destroy();
-            
-            sortableInstance = new Sortable(container, {
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    let updatedFiles = {};
-                    const items = container.querySelectorAll('.file-item');
-                    items.forEach(item => {
-                        const fname = item.getAttribute('data-filename');
-                        if (virtualFiles[fname] !== undefined) {
-                            updatedFiles[fname] = virtualFiles[fname];
-                        }
-                    });
-                    virtualFiles = updatedFiles;
-                    localStorage.setItem(`ide_files_${userId}`, JSON.stringify(virtualFiles));
-                }
-            });
+        function saveKeyboardLayoutOrder() {
+            const row1Keys = Array.from(document.getElementById('row1').children).map(el => el.getAttribute('data-key'));
+            const row2Keys = Array.from(document.getElementById('row2').children).map(el => el.getAttribute('data-key'));
+            const layoutOrder = { row1: row1Keys, row2: row2Keys };
+            localStorage.setItem(`ide_keyboard_layout_${userId}`, JSON.stringify(layoutOrder));
+        }
+
+        function loadKeyboardLayoutOrder() {
+            const cachedLayout = JSON.parse(localStorage.getItem(`ide_keyboard_layout_${userId}`));
+            if (!cachedLayout) return;
+
+            const reorderRow = (rowId, keyArray) => {
+                const rowEl = document.getElementById(rowId);
+                const currentButtons = Array.from(rowEl.children);
+                rowEl.innerHTML = "";
+                keyArray.forEach(keyId => {
+                    const btnMatch = currentButtons.find(btn => btn.getAttribute('data-key') === keyId);
+                    if (btnMatch) rowEl.appendChild(btnMatch);
+                });
+                // Append missing elements if schema updating happens later
+                currentButtons.forEach(btn => {
+                    if (!rowEl.contains(btn)) rowEl.appendChild(btn);
+                });
+            };
+
+            if (cachedLayout.row1) reorderRow('row1', cachedLayout.row1);
+            if (cachedLayout.row2) reorderRow('row2', cachedLayout.row2);
         }
 
         function switchToFile(filename) {
