@@ -27,7 +27,7 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
         
         /* Navbar Layout */
-        .navbar { display: flex; flex-direction: column; background: var(--panel-bg); border-bottom: 2px solid #1f2937; padding: 6px 12px; gap: 6px; box-sizing: border-box; }
+        .navbar { display: flex; flex-direction: column; background: var(--panel-bg); border-bottom: 2px solid #1f2937; padding: 6px 12px; gap: 6px; box-sizing: border-box; flex-shrink: 0; }
         .nav-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .title { font-weight: bold; font-size: 14px; color: var(--accent-neon); font-family: monospace; display: flex; align-items: center; gap: 6px; }
         .nav-actions { display: flex; gap: 6px; align-items: center; }
@@ -43,18 +43,24 @@
         
         select.nav-btn { background-color: #1f2937; color: #fff; outline: none; padding-right: 20px; }
 
-        .main-container { display: flex; flex-direction: column; flex-grow: 1; height: 100%; position: relative; background: var(--bg-dark); }
-        #editor { flex-grow: 1; width: 100%; background: #0f1423 !important; font-size: 16px; }
+        /* 🚀 Main Container Restructured for Smooth Scrolling */
+        .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 110px); position: relative; background: var(--bg-dark); overflow: hidden; }
+        #editor { flex-grow: 1; width: 100%; height: 100%; background: #0f1423 !important; font-size: 16px; overflow: auto; }
         
         /* High Capacity Scrollable Terminal Panel */
-        .terminal-panel { height: 28%; background: #05070c; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; }
+        .terminal-panel { height: 32%; background: #05070c; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; flex-shrink: 0; }
         .terminal-panel.expanded { height: 75% !important; }
         .terminal-header { background: #0d1321; padding: 8px 15px; font-size: 11px; font-weight: bold; color: var(--text-gray); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937; letter-spacing: 1px; }
         .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
         
         .output-container { flex-grow: 1; overflow: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; -webkit-overflow-scrolling: touch; }
-        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre; overflow: visible; line-height: 1.5; }
+        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre-wrap; word-break: break-all; line-height: 1.5; display: inline-block; width: 100%; }
         
+        /* 🕹️ Interactive Inline Terminal Input Area */
+        .terminal-input-wrapper { display: none; align-items: center; background: #020408; padding: 4px 12px; border-top: 1px solid #1f2937; }
+        .terminal-prompt { font-family: 'Courier New', Courier, monospace; font-size: 14px; color: var(--accent-neon); font-weight: bold; margin-right: 8px; white-space: nowrap; }
+        #terminal-input-field { flex-grow: 1; background: transparent; border: none; outline: none; color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 14px; padding: 4px 0; }
+
         /* Modern Smart Keyboard Toolbar */
         .shortcut-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d111a; border-top: 1px solid #242b35; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; box-sizing: border-box; z-index: 9999; transition: transform 0.2s ease, opacity 0.2s ease; }
         .shortcut-bar.hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
@@ -67,8 +73,7 @@
         .shortcut-btn.ctrl-active { background: var(--accent-neon) !important; color: #000 !important; box-shadow: 0 0 10px rgba(0,255,204,0.5); font-weight: bold; }
         
         .shortcut-row.sorting-active { border: 1px dashed var(--accent-neon); background: rgba(0,255,204,0.03); }
-        .padding-bottom-fix { height: 90px; background: transparent; }
-        .padding-bottom-fix.shorten { height: 0px; }
+        .padding-bottom-fix { height: 90px; background: transparent; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -100,19 +105,24 @@
     </div>
 
     <div class="main-container">
-        <!-- 🧼 Empty default state for instant fresh startup -->
+        <!-- 🧼 Clean Empty Default Workspace -->
         <div id="editor"></div>
         <div class="padding-bottom-fix" id="bottom-pad"></div>
     </div>
 
-    <!-- Scrollable Terminal Box with Exec Benchmarks -->
+    <!-- Scrollable Terminal Box with Interactive Input Interface -->
     <div class="terminal-panel" id="terminal">
         <div class="terminal-header">
             <span>⚡ PYTHON CONSOLE <span id="timer-label" style="color:var(--accent-neon); margin-left:10px;"></span></span>
             <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
         </div>
-        <div class="output-container">
+        <div class="output-container" id="terminal-scroll-area">
             <pre id="output">⏳ Python 3.11 Runtime Core Engine Booting...</pre>
+        </div>
+        <!-- 🕹️ Inline Dynamic Terminal Input Layer -->
+        <div class="terminal-input-wrapper" id="input-bar">
+            <div class="terminal-prompt" id="input-prompt-label">[INPUT]:</div>
+            <input type="text" id="terminal-input-field" placeholder="Type here and press Enter..." autocomplete="off">
         </div>
     </div>
 
@@ -160,13 +170,11 @@
 
         function insertSymbol(symbol) { editor.insert(symbol); editor.focus(); }
 
-        // 🎨 Change Themes Dynamic Selector
         function changeTheme() {
             const chosen = document.getElementById('themeSelect').value;
             editor.setTheme(chosen);
         }
 
-        // 🔤 Font Sizing Logic
         function adjustFontSize(delta) {
             currentFontSize += delta;
             if(currentFontSize < 10) currentFontSize = 10;
@@ -174,7 +182,6 @@
             editor.setFontSize(currentFontSize + "px");
         }
 
-        // 📥 Download Script file locally (.py)
         function downloadCode() {
             const userScript = editor.getValue();
             const blob = new Blob([userScript], { type: "text/plain;charset=utf-8" });
@@ -184,7 +191,6 @@
             link.click();
         }
 
-        // ⚡ Built-in Code Snippets Insertions
         function insertSnippet(type) {
             let chunk = "";
             if(type === 'for') {
@@ -294,12 +300,56 @@
             });
         }
 
+        // --- 🕹️ ADVANCED INTERACTIVE TERMINAL INPUT LOGIC ---
         let pyodideObj = null;
         const consoleOut = document.getElementById("output");
+        const inputBar = document.getElementById("input-bar");
+        const inputField = document.getElementById("terminal-input-field");
+        const inputPromptLabel = document.getElementById("input-prompt-label");
+        
+        let resolveInputPromise = null;
+
+        // Custom function to handle Python input channel
+        function handleTerminalInputRequest(promptText) {
+            return new Promise((resolve) => {
+                // Show terminal input panel
+                inputBar.style.display = "flex";
+                inputPromptLabel.innerText = promptText || "[INPUT]:";
+                inputField.value = "";
+                
+                // Focus user to entry box
+                inputField.focus();
+                
+                // Auto-scroll terminal down
+                const scrollArea = document.getElementById("terminal-scroll-area");
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+
+                resolveInputPromise = resolve;
+            });
+        }
+
+        // Listener for input submittals via Enter key
+        inputField.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                const userInput = inputField.value;
+                inputBar.style.display = "none"; // hide input panel
+                
+                // Print the user's input directly into the terminal stream history
+                consoleOut.innerText += userInput + "\n";
+                
+                if (resolveInputPromise) {
+                    resolveInputPromise(userInput);
+                }
+            }
+        });
 
         async function initCompiler() {
             try {
                 pyodideObj = await loadPyodide();
+                
+                // Intercept and inject custom inline terminal handler to Pyodide namespace
+                self.customTerminalInputReader = handleTerminalInputRequest;
+                
                 consoleOut.innerText = "🐍 Python 3.11 Environment Ready.\nWrite your code and press RUN.";
                 consoleOut.style.color = "var(--text-gray)";
             } catch(e) { consoleOut.innerText = "❌ Core Error Booting Workspace Components."; }
@@ -315,12 +365,29 @@
             document.getElementById('terminal').classList.add('expanded');
             document.getElementById('sizeBtn').innerText = "▼ SHRINK";
 
-            // Benchmark Timer Initiation
             const startTime = performance.now();
 
-            pyodideObj.runPython(`import sys, io\nsys.stdout = io.StringIO()\nsys.stderr = io.StringIO()`);
+            // Setup sys wrappers and override standard synchronous 'input()' block with a JavaScript promise hook
+            pyodideObj.runPython(`
+import sys, io, builtins
+sys.stdout = io.StringIO()
+sys.stderr = io.StringIO()
+
+def custom_input(prompt=""):
+    import __main__
+    print(prompt, end="")
+    # Call the global JS handler exposed on the window namespace
+    from js import customTerminalInputReader
+    promise = customTerminalInputReader(prompt)
+    return promise
+
+builtins.input = custom_input
+            `);
+
             try {
+                // Run the asynchronous environment safely
                 await pyodideObj.runPythonAsync(rawCode);
+                
                 const stdout = pyodideObj.runPython("sys.stdout.getvalue()");
                 const stderr = pyodideObj.runPython("sys.stderr.getvalue()");
                 
@@ -328,12 +395,16 @@
                 const totalDuration = (endTime - startTime).toFixed(1);
                 document.getElementById('timer-label').innerText = `(${totalDuration}ms)`;
 
-                consoleOut.innerText = (stdout + stderr) || "💡 Process executed successfully with clear stdout buffer.";
+                consoleOut.innerText += (stdout + stderr) || "\n💡 Process executed successfully.";
             } catch (err) {
                 document.getElementById('timer-label').innerText = "(Error)";
                 consoleOut.style.color = "#ff4444";
-                consoleOut.innerText = "🛑 Syntax/Runtime Exception:\n" + err;
+                consoleOut.innerText += "\n🛑 Syntax/Runtime Exception:\n" + err;
             }
+            
+            // Auto scroll to bottom at execution completion
+            const scrollArea = document.getElementById("terminal-scroll-area");
+            scrollArea.scrollTop = scrollArea.scrollHeight;
         }
     </script>
 </body>
