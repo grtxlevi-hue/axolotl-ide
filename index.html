@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
-    <!-- Ace Themes Loaders -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-dracula.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-twilight.js"></script>
@@ -32,7 +31,6 @@
         .title { font-weight: bold; font-size: 14px; color: var(--accent-neon); font-family: monospace; display: flex; align-items: center; gap: 6px; }
         .nav-actions { display: flex; gap: 6px; align-items: center; }
         
-        /* Sub Controls Row */
         .nav-controls { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
         .nav-controls::-webkit-scrollbar { display: none; }
         
@@ -43,23 +41,23 @@
         
         select.nav-btn { background-color: #1f2937; color: #fff; outline: none; padding-right: 20px; }
 
-        /* 🚀 Main Container Restructured for Smooth Scrolling */
+        /* Main Container Code Editor */
         .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 110px); position: relative; background: var(--bg-dark); overflow: hidden; }
         #editor { flex-grow: 1; width: 100%; height: 100%; background: #0f1423 !important; font-size: 16px; overflow: auto; }
         
         /* High Capacity Scrollable Terminal Panel */
-        .terminal-panel { height: 32%; background: #05070c; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; flex-shrink: 0; }
+        .terminal-panel { height: 35%; background: #05070c; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; flex-shrink: 0; }
         .terminal-panel.expanded { height: 75% !important; }
         .terminal-header { background: #0d1321; padding: 8px 15px; font-size: 11px; font-weight: bold; color: var(--text-gray); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937; letter-spacing: 1px; }
         .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
         
         .output-container { flex-grow: 1; overflow: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; -webkit-overflow-scrolling: touch; }
-        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre-wrap; word-break: break-all; line-height: 1.5; display: inline-block; width: 100%; }
         
-        /* 🕹️ Interactive Inline Terminal Input Area */
-        .terminal-input-wrapper { display: none; align-items: center; background: #020408; padding: 4px 12px; border-top: 1px solid #1f2937; }
-        .terminal-prompt { font-family: 'Courier New', Courier, monospace; font-size: 14px; color: var(--accent-neon); font-weight: bold; margin-right: 8px; white-space: nowrap; }
-        #terminal-input-field { flex-grow: 1; background: transparent; border: none; outline: none; color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 14px; padding: 4px 0; }
+        /* Pure Terminal Canvas */
+        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre-wrap; word-break: break-all; line-height: 1.5; width: 100%; outline: none; }
+        
+        /* 🕹️ True Inline Content Editable Cursor Element */
+        .inline-input-node { display: inline-block; min-width: 10px; background: transparent; border: none; outline: none; color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 14px; font-weight: bold; padding: 0; margin: 0; border-bottom: 2px solid var(--accent-neon); caret-color: var(--accent-neon); }
 
         /* Modern Smart Keyboard Toolbar */
         .shortcut-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d111a; border-top: 1px solid #242b35; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; box-sizing: border-box; z-index: 9999; transition: transform 0.2s ease, opacity 0.2s ease; }
@@ -86,7 +84,6 @@
                 <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
             </div>
         </div>
-        <!-- Extra Control Features Panel -->
         <div class="nav-controls">
             <select class="nav-btn" id="themeSelect" onchange="changeTheme()">
                 <option value="ace/theme/monokai">Monokai</option>
@@ -105,28 +102,20 @@
     </div>
 
     <div class="main-container">
-        <!-- 🧼 Clean Empty Default Workspace -->
         <div id="editor"></div>
         <div class="padding-bottom-fix" id="bottom-pad"></div>
     </div>
 
-    <!-- Scrollable Terminal Box with Interactive Input Interface -->
     <div class="terminal-panel" id="terminal">
         <div class="terminal-header">
             <span>⚡ PYTHON CONSOLE <span id="timer-label" style="color:var(--accent-neon); margin-left:10px;"></span></span>
             <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
         </div>
         <div class="output-container" id="terminal-scroll-area">
-            <pre id="output">⏳ Python 3.11 Runtime Core Engine Booting...</pre>
-        </div>
-        <!-- 🕹️ Inline Dynamic Terminal Input Layer -->
-        <div class="terminal-input-wrapper" id="input-bar">
-            <div class="terminal-prompt" id="input-prompt-label">[INPUT]:</div>
-            <input type="text" id="terminal-input-field" placeholder="Type here and press Enter..." autocomplete="off">
+            <div id="output">⏳ Python 3.11 Runtime Core Engine Booting...</div>
         </div>
     </div>
 
-    <!-- Smart Virtual Keyboard Panel Layout -->
     <div class="shortcut-bar" id="keyboard-bar">
         <div class="shortcut-row" id="row1">
             <div class="shortcut-btn special-btn" id="ctrl-btn" data-id="ctrl" onclick="toggleCtrlKey()">CTRL</div>
@@ -300,92 +289,95 @@
             });
         }
 
-        // --- 🕹️ ADVANCED INTERACTIVE TERMINAL INPUT LOGIC ---
+        // --- 🕹️ ADVANCED REAL INLINE TERMINAL INPUT SYSTEM ---
         let pyodideObj = null;
         const consoleOut = document.getElementById("output");
-        const inputBar = document.getElementById("input-bar");
-        const inputField = document.getElementById("terminal-input-field");
-        const inputPromptLabel = document.getElementById("input-prompt-label");
-        
-        let resolveInputPromise = null;
+        let currentInputResolve = null;
 
-        // Custom function to handle Python input channel
-        function handleTerminalInputRequest(promptText) {
+        function handleTerminalInlineInput(promptText) {
             return new Promise((resolve) => {
-                // Show terminal input panel
-                inputBar.style.display = "flex";
-                inputPromptLabel.innerText = promptText || "[INPUT]:";
-                inputField.value = "";
+                currentInputResolve = resolve;
                 
-                // Focus user to entry box
-                inputField.focus();
+                // 1. Clear text from previous prompt symbols if any, then append the question text
+                consoleOut.innerHTML += promptText;
+
+                // 2. Safely inject a real contenteditable node directly inside the text sequence flow
+                const inputNode = document.createElement("span");
+                inputNode.className = "inline-input-node";
+                inputNode.setAttribute("contenteditable", "true");
+                inputNode.setAttribute("autofocus", "true");
                 
-                // Auto-scroll terminal down
+                consoleOut.appendChild(inputNode);
+                
+                // Force focus on the mobile keyboard
+                setTimeout(() => {
+                    inputNode.focus();
+                    // Move cursor inside it
+                    const range = document.createRange();
+                    const sel = window.getSelection();
+                    range.selectNodeContents(inputNode);
+                    range.collapse(false);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }, 50);
+
+                // Auto Scroll down smoothly
                 const scrollArea = document.getElementById("terminal-scroll-area");
                 scrollArea.scrollTop = scrollArea.scrollHeight;
 
-                resolveInputPromise = resolve;
+                // 3. Catch user submit hit via inline listeners
+                inputNode.addEventListener("keydown", function(e) {
+                    if (e.key === "Enter") {
+                        e.preventDefault(); // stop line-break injection
+                        const enteredVal = inputNode.innerText;
+                        
+                        // Replace editable block with clean solid finalized text string
+                        inputNode.remove();
+                        consoleOut.innerHTML += enteredVal + "\n";
+                        
+                        currentInputResolve(enteredVal);
+                    }
+                });
             });
         }
-
-        // Listener for input submittals via Enter key
-        inputField.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") {
-                const userInput = inputField.value;
-                inputBar.style.display = "none"; // hide input panel
-                
-                // Print the user's input directly into the terminal stream history
-                consoleOut.innerText += userInput + "\n";
-                
-                if (resolveInputPromise) {
-                    resolveInputPromise(userInput);
-                }
-            }
-        });
 
         async function initCompiler() {
             try {
                 pyodideObj = await loadPyodide();
-                
-                // Intercept and inject custom inline terminal handler to Pyodide namespace
-                self.customTerminalInputReader = handleTerminalInputRequest;
-                
-                consoleOut.innerText = "🐍 Python 3.11 Environment Ready.\nWrite your code and press RUN.";
+                self.customInlineReader = handleTerminalInlineInput;
+                consoleOut.innerHTML = "🐍 Python 3.11 Environment Ready.<br>Write your code and press RUN.";
                 consoleOut.style.color = "var(--text-gray)";
-            } catch(e) { consoleOut.innerText = "❌ Core Error Booting Workspace Components."; }
+            } catch(e) { consoleOut.innerHTML = "❌ Core Error Booting Workspace Components."; }
         }
         initCompiler();
 
         async function executePython() {
             if (!pyodideObj) return;
             const rawCode = editor.getValue();
-            consoleOut.innerText = "⚡ Running Python Script...\n";
-            consoleOut.style.color = "#00ffcc";
+            consoleOut.innerHTML = "⚡ Running Python Script...<br>";
+            consoleOut.style.color = "#51ff85";
             
             document.getElementById('terminal').classList.add('expanded');
             document.getElementById('sizeBtn').innerText = "▼ SHRINK";
 
             const startTime = performance.now();
 
-            // Setup sys wrappers and override standard synchronous 'input()' block with a JavaScript promise hook
+            // Core standard stream intercepts
             pyodideObj.runPython(`
 import sys, io, builtins
 sys.stdout = io.StringIO()
 sys.stderr = io.StringIO()
 
-def custom_input(prompt=""):
-    import __main__
-    print(prompt, end="")
-    # Call the global JS handler exposed on the window namespace
-    from js import customTerminalInputReader
-    promise = customTerminalInputReader(prompt)
+def inline_input_bridge(prompt=""):
+    from js import customInlineReader
+    # Synchronously call through javascript task system 
+    promise = customInlineReader(prompt)
     return promise
 
-builtins.input = custom_input
+builtins.input = inline_input_bridge
             `);
 
             try {
-                // Run the asynchronous environment safely
                 await pyodideObj.runPythonAsync(rawCode);
                 
                 const stdout = pyodideObj.runPython("sys.stdout.getvalue()");
@@ -395,14 +387,18 @@ builtins.input = custom_input
                 const totalDuration = (endTime - startTime).toFixed(1);
                 document.getElementById('timer-label').innerText = `(${totalDuration}ms)`;
 
-                consoleOut.innerText += (stdout + stderr) || "\n💡 Process executed successfully.";
+                // Append remaining final buffered stdout logs safely
+                if(stdout || stderr) {
+                    consoleOut.innerHTML += (stdout + stderr);
+                } else if(!consoleOut.innerHTML.includes("\n") && consoleOut.innerHTML.endsWith("...<br>")) {
+                    consoleOut.innerHTML += "<br>💡 Process executed successfully with clear output buffer.";
+                }
             } catch (err) {
                 document.getElementById('timer-label').innerText = "(Error)";
                 consoleOut.style.color = "#ff4444";
-                consoleOut.innerText += "\n🛑 Syntax/Runtime Exception:\n" + err;
+                consoleOut.innerHTML += "<br>🛑 Runtime Exception:<br>" + err;
             }
             
-            // Auto scroll to bottom at execution completion
             const scrollArea = document.getElementById("terminal-scroll-area");
             scrollArea.scrollTop = scrollArea.scrollHeight;
         }
