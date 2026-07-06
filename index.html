@@ -21,10 +21,17 @@
         .run-btn:active { background: #27ae60; }
         
         /* Main Code Area */
-        #editor { flex-grow: 1; width: 100%; height: 60%; background: #1e1e1e; font-size: 16px; }
+        #editor { flex-grow: 1; width: 100%; background: #1e1e1e; font-size: 16px; }
         
+        /* Acode Style Mobile Shortcut Toolbar */
+        .shortcut-bar { display: flex; background: #252526; border-top: 1px solid #333; border-bottom: 1px solid #333; overflow-x: auto; padding: 5px; gap: 6px; -webkit-overflow-scrolling: touch; }
+        .shortcut-bar::-webkit-scrollbar { display: none; } /* Hide bar scroll */
+        .shortcut-btn { background: #333333; color: #ffffff; border: 1px solid #444; border-radius: 4px; min-width: 36px; height: 36px; font-family: monospace; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; -webkit-user-select: none; }
+        .shortcut-btn:active { background: #555; color: #a6e22e; }
+        .tab-btn { font-size: 12px; font-family: sans-serif; min-width: 45px; background: #3e3e3e; }
+
         /* Terminal Window */
-        .terminal-panel { height: 35%; background: #0c0c0c; border-top: 2px solid #2d2d2d; display: flex; flex-direction: column; box-sizing: border-box; }
+        .terminal-panel { height: 30%; background: #0c0c0c; border-top: 1px solid #2d2d2d; display: flex; flex-direction: column; box-sizing: border-box; }
         .terminal-header { background: #1a1a1a; padding: 6px 15px; font-size: 11px; font-weight: bold; color: #888; letter-spacing: 1px; border-bottom: 1px solid #222; }
         #output { flex-grow: 1; padding: 12px; margin: 0; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #00ff66; white-space: pre-wrap; line-height: 1.4; word-break: break-all; }
         
@@ -52,6 +59,29 @@ nums = [x for x in range(1, 6)]
 print("List data:", nums)
 </div>
 
+    <!-- Acode Mobile Shortcuts Row -->
+    <div class="shortcut-bar">
+        <div class="shortcut-btn tab-btn" onclick="insertSymbol('    ')">TAB</div>
+        <div class="shortcut-btn" onclick="insertSymbol(':')">:</div>
+        <div class="shortcut-btn" onclick="insertSymbol('(')">(</div>
+        <div class="shortcut-btn" onclick="insertSymbol(')')">)</div>
+        <div class="shortcut-btn" onclick="insertSymbol('[')">[</div>
+        <div class="shortcut-btn" onclick="insertSymbol(']')">]</div>
+        <div class="shortcut-btn" onclick="insertSymbol('{')">{</div>
+        <div class="shortcut-btn" onclick="insertSymbol('}')">}</div>
+        <div class="shortcut-btn" onclick="insertSymbol('\"')">"</div>
+        <div class="shortcut-btn" onclick="insertSymbol('\'')">'</div>
+        <div class="shortcut-btn" onclick="insertSymbol('=')">=</div>
+        <div class="shortcut-btn" onclick="insertSymbol('+')">+</div>
+        <div class="shortcut-btn" onclick="insertSymbol('-')">-</div>
+        <div class="shortcut-btn" onclick="insertSymbol('*')">*</div>
+        <div class="shortcut-btn" onclick="insertSymbol('/')">/</div>
+        <div class="shortcut-btn" onclick="insertSymbol('%')">%</div>
+        <div class="shortcut-btn" onclick="insertSymbol(',')">,</div>
+        <div class="shortcut-btn" onclick="insertSymbol('.')">.</div>
+        <div class="shortcut-btn" onclick="insertSymbol('_')">_</div>
+    </div>
+
     <!-- The Embedded Terminal -->
     <div class="terminal-panel">
         <div class="terminal-header">CONSOLE TERMINAL</div>
@@ -62,9 +92,9 @@ print("List data:", nums)
         // WebApp Settings
         const tg = Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Make it full screen inside Telegram
+        tg.expand(); 
 
-        // Ace Editor Configurations (Customised for heavy smartphone coding)
+        // Ace Editor Configurations
         const editor = ace.edit("editor");
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/python");
@@ -77,6 +107,12 @@ print("List data:", nums)
             fontSize: "15px",
             wrap: true
         });
+
+        // Function to insert shortcut characters smoothly without losing keyboard focus
+        function insertSymbol(symbol) {
+            editor.insert(symbol);
+            editor.focus(); // Keyboards stays open on mobile
+        }
 
         let pyodideObj = null;
         const consoleOut = document.getElementById("output");
@@ -104,7 +140,6 @@ print("List data:", nums)
             consoleOut.innerText = "⚡ Running script...\n";
             consoleOut.style.color = "#00ff66";
 
-            // Safe environment configuration
             pyodideObj.runPython(`
                 import sys
                 import io
