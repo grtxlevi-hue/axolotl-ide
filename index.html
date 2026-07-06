@@ -3,88 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axolotl Premium Editor</title>
+    <title>Axolotl Cyberpunk IDE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-    <!-- SortableJS library buttons drag karne ke liye -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: #151515; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+        :root {
+            --bg-dark: #0b0f19;
+            --panel-bg: #111827;
+            --accent-neon: #00ffcc;
+            --accent-green: #2ecc71;
+            --text-gray: #9ca3af;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
         
-        .navbar { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; padding: 10px 15px; border-bottom: 1px solid #2d2d2d; height: 45px; box-sizing: border-box; }
-        .title { font-weight: bold; font-size: 14px; color: #a6e22e; font-family: monospace; }
-        .nav-actions { display: flex; gap: 10px; align-items: center; }
-        .run-btn { background: #2ecc71; color: #fff; border: none; padding: 6px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        .settings-btn { background: #3a3a3a; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        /* Premium Axolotl Theme Header */
+        .navbar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 10px 15px; border-bottom: 2px solid #1f2937; height: 50px; box-sizing: border-box; }
+        .title { font-weight: bold; font-size: 14px; color: var(--accent-neon); font-family: monospace; display: flex; align-items: center; gap: 6px; }
+        .nav-actions { display: flex; gap: 8px; align-items: center; }
         
-        .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 45px); position: relative; }
-        #editor { flex-grow: 1; width: 100%; background: #1e1e1e; font-size: 16px; }
+        .nav-btn { background: #1f2937; color: #fff; border: 1px solid #374151; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .nav-btn:active { background: #374151; }
+        .run-btn { background: var(--accent-green); color: #fff; font-weight: bold; border: none; padding: 6px 14px; box-shadow: 0 0 10px rgba(46,204,113,0.3); }
+        .run-btn:active { background: #27ae60; }
         
-        /* 🚀 Advanced Resizable Terminal Panel */
+        .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 50px); position: relative; background: var(--bg-dark); }
+        #editor { flex-grow: 1; width: 100%; background: #0f1423 !important; font-size: 16px; }
+        
+        /* 🚀 High capacity auto-scroll Terminal panel */
         .terminal-panel { 
-            height: 25%; 
-            background: #0c0c0c; 
-            border-top: 1px solid #2d2d2d; 
+            height: 28%; 
+            background: #05070c; 
+            border-top: 2px solid #1f2937; 
             display: flex; 
             flex-direction: column; 
             box-sizing: border-box;
-            transition: height 0.3s ease;
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        .terminal-panel.expanded {
-            height: 70% !important; /* Click karne par upar slide ho jayega */
-        }
+        .terminal-panel.expanded { height: 75% !important; }
         .terminal-header { 
-            background: #1a1a1a; 
+            background: #0d1321; 
             padding: 8px 15px; 
             font-size: 11px; 
             font-weight: bold; 
-            color: #888; 
+            color: var(--text-gray); 
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            border-bottom: 1px solid #222; 
+            border-bottom: 1px solid #1f2937;
+            letter-spacing: 1px;
         }
-        .expand-btn { background: none; border: none; color: #a6e22e; font-weight: bold; cursor: pointer; font-size: 11px; }
-        #output { flex-grow: 1; padding: 12px; margin: 0; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #00ff66; white-space: pre-wrap; word-break: break-all; }
+        .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
         
-        /* 🛠️ Acode Style Toolbar Layout */
+        /* Fixed scroll container for large outputs */
+        .output-container { flex-grow: 1; overflow-y: auto; overflow-x: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; }
+        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre; line-height: 1.5; }
+        
+        /* 🛠️ Modern Hybrid Keyboard Overlay Toolbar */
         .shortcut-bar { 
             position: fixed; 
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            background: #1c2024; 
-            border-top: 1px solid #2d3139; 
+            background: #0d111a; 
+            border-top: 1px solid #242b35; 
             display: flex;
             flex-direction: column;
             gap: 2px;
             padding: 4px 2px;
             box-sizing: border-box;
             z-index: 9999;
+            transition: transform 0.2s ease, opacity 0.2s ease;
         }
-        .shortcut-row {
-            display: flex;
-            overflow-x: auto;
-            gap: 4px;
-            padding: 2px 4px;
-            -webkit-overflow-scrolling: touch;
+        .shortcut-bar.hidden {
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
         }
+        .shortcut-row { display: flex; overflow-x: auto; gap: 4px; padding: 2px 4px; -webkit-overflow-scrolling: touch; }
         .shortcut-row::-webkit-scrollbar { display: none; }
         
-        /* Dragging status overlay border */
-        .shortcut-row.sorting-active {
-            border: 1px dashed #2ecc71;
-            background: rgba(46,204,113,0.05);
-        }
-        
         .shortcut-btn { 
-            background: #252930; 
+            background: #161c26; 
             color: #ffffff; 
-            border: 1px solid #2d3139;
-            border-radius: 4px; 
+            border: 1px solid #242b35;
+            border-radius: 6px; 
             min-width: 44px; 
             height: 36px; 
             font-family: monospace; 
@@ -95,54 +102,69 @@
             cursor: pointer; 
             user-select: none; 
             -webkit-user-select: none;
+            transition: background 0.1s;
         }
-        .shortcut-btn:active { background: #343a40; }
-        .special-btn { font-size: 11px; color: #b0b5c0; font-weight: bold; background: #1e2227; }
-
-        .padding-bottom-fix { height: 90px; background: #1e1e1e; }
+        .shortcut-btn:active { background: #2a3447; }
+        .special-btn { font-size: 11px; color: #9ca3af; font-weight: bold; background: #111622; }
+        
+        /* CTRL Active Glow State */
+        .shortcut-btn.ctrl-active {
+            background: var(--accent-neon) !important;
+            color: #000 !important;
+            box-shadow: 0 0 10px rgba(0,255,204,0.5);
+            font-weight: bold;
+        }
+        
+        .shortcut-row.sorting-active { border: 1px dashed var(--accent-neon); background: rgba(0,255,204,0.03); }
+        .padding-bottom-fix { height: 90px; background: transparent; transition: height 0.2s; }
+        .padding-bottom-fix.shorten { height: 0px; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="title">📄 main.py</div>
+        <div class="title">🦎 <span>axolotl.py</span></div>
         <div class="nav-actions">
-            <button class="settings-btn" id="sortToggle" onclick="toggleSorting()">⚙️ Arrange</button>
-            <button class="run-btn" onclick="executePython()">▶ RUN</button>
+            <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()" title="Toggle Keyboard Buttons">👁️ Bar</button>
+            <button class="nav-btn" id="sortToggle" onclick="toggleSorting()">⚙️ Sort</button>
+            <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
         </div>
     </div>
 
     <div class="main-container">
-        <div id="editor">rows = 5
+        <div id="editor"># Axolotl Engine
+rows = 15
 for i in range(1, rows + 1):
     print(' ' * (rows - i) + '*' * (2 * i - 1))
 </div>
-        <div class="padding-bottom-fix"></div>
+        <div class="padding-bottom-fix" id="bottom-pad"></div>
     </div>
 
-    <!-- Resizable Terminal Box -->
+    <!-- Scrollproof High capacity Terminal Console -->
     <div class="terminal-panel" id="terminal">
         <div class="terminal-header">
-            <span>CONSOLE TERMINAL</span>
-            <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND PANEL</button>
+            <span>⚡ AXOLOTL SYSTEM CONSOLE</span>
+            <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
         </div>
-        <pre id="output">⏳ Click RUN to see output...</pre>
+        <div class="output-container">
+            <pre id="output">⏳ Environment Initializing...</pre>
+        </div>
     </div>
 
-    <!-- Drag-Sort Enabled Shortcut Bar -->
+    <!-- Hardware Emulation Smart Toolbar -->
     <div class="shortcut-bar" id="keyboard-bar">
-        <!-- Row 1 Commands (Sortable) -->
+        <!-- Row 1 Commands -->
         <div class="shortcut-row" id="row1">
-            <div class="shortcut-btn special-btn" data-id="ctrl">CTRL</div>
+            <div class="shortcut-btn special-btn" id="ctrl-btn" data-id="ctrl" onclick="toggleCtrlKey()">CTRL</div>
             <div class="shortcut-btn special-btn" data-id="tab" onclick="insertSymbol('    ')">➔|</div>
             <div class="shortcut-btn special-btn" data-id="shft">SHFT</div>
             <div class="shortcut-btn special-btn" data-id="undo" onclick="editor.undo()">↩</div>
             <div class="shortcut-btn special-btn" data-id="redo" onclick="editor.redo()">↪</div>
-            <div class="shortcut-btn special-btn" data-id="find">🔍</div>
-            <div class="shortcut-btn special-btn" data-id="save">💾</div>
+            <div class="shortcut-btn special-btn" data-id="find" onclick="editor.execCommand('find')">🔍</div>
+            <div class="shortcut-btn special-btn" data-id="selectall" onclick="editor.selectAll(); editor.focus();">⌘A</div>
             <div class="shortcut-btn special-btn" data-id="esc">ESC</div>
         </div>
-        <!-- Row 2 Symbols (Sortable) -->
+        <!-- Row 2 Coding Symbols -->
         <div class="shortcut-row" id="row2">
             <div class="shortcut-btn" data-id="semi" onclick="insertSymbol(';')">;</div>
             <div class="shortcut-btn" data-id="squote" onclick="insertSymbol('\'')">'</div>
@@ -170,24 +192,79 @@ for i in range(1, rows + 1):
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/python");
         editor.setShowPrintMargin(false);
-        editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: "16px", wrap: true });
+        editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: "16px", wrap: false });
 
         function insertSymbol(symbol) { editor.insert(symbol); editor.focus(); }
 
-        // 🚀 Terminal Slide Up Logic
+        // 1) 👁️ Extra Bar ON/OFF Toggle Functionality
+        function toggleShortcutBar() {
+            const bar = document.getElementById('keyboard-bar');
+            const pad = document.getElementById('bottom-pad');
+            const btn = document.getElementById('toggleBarBtn');
+            
+            if(bar.classList.contains('hidden')) {
+                bar.classList.remove('hidden');
+                pad.classList.remove('shorten');
+                btn.innerText = "👁️ Bar On";
+                btn.style.borderColor = "var(--accent-neon)";
+            } else {
+                bar.classList.add('hidden');
+                pad.classList.add('shorten');
+                btn.innerText = "👁️ Bar Off";
+                btn.style.borderColor = "#374151";
+            }
+        }
+
+        // 2) 🚀 Resizable Terminal panel & clean scrolling
         function toggleTerminalSize() {
             const term = document.getElementById('terminal');
             const btn = document.getElementById('sizeBtn');
             if(term.classList.contains('expanded')) {
                 term.classList.remove('expanded');
-                btn.innerText = "▲ EXPAND PANEL";
+                btn.innerText = "▲ EXPAND";
             } else {
                 term.classList.add('expanded');
-                btn.innerText = "▼ SHRINK PANEL";
+                btn.innerText = "▼ SHRINK";
             }
         }
 
-        // 🛠️ Button Position Arrange/Drag Settings Logic
+        // 3) 🎛️ Intelligent Virtual CTRL State Handling
+        let isCtrlActive = false;
+        function toggleCtrlKey() {
+            isCtrlActive = !isCtrlActive;
+            const ctrlBtn = document.getElementById('ctrl-btn');
+            if(isCtrlActive) {
+                ctrlBtn.classList.add('ctrl-active');
+                editor.focus();
+            } else {
+                ctrlBtn.classList.remove('ctrl-active');
+            }
+        }
+
+        // Capturing key events inside Ace Editor to intercept when virtual CTRL is active
+        editor.textInput.onKeyDown = function(e) {
+            if (isCtrlActive) {
+                const key = e.key.toLowerCase();
+                let triggered = true;
+                
+                if (key === 'a') editor.selectAll();
+                else if (key === 'c') document.execCommand('copy');
+                else if (key === 'v') document.execCommand('paste');
+                else if (key === 'z') editor.undo();
+                else if (key === 'y') editor.redo();
+                else if (key === 'f') editor.execCommand('find');
+                else triggered = false;
+
+                if(triggered) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleCtrlKey(); // Auto reset state after shortcut execution
+                    return false;
+                }
+            }
+        };
+
+        // 🛠️ Sorting Layout logic
         let sortable1, sortable2;
         let isSortingActive = false;
 
@@ -195,36 +272,27 @@ for i in range(1, rows + 1):
             const r1 = document.getElementById('row1');
             const r2 = document.getElementById('row2');
             const sBtn = document.getElementById('sortToggle');
-            
             isSortingActive = !isSortingActive;
             
             if(isSortingActive) {
-                sBtn.innerText = "💾 Save Layout";
-                sBtn.style.background = "#2ecc71";
+                sBtn.innerText = "💾 Save";
+                sBtn.style.background = "var(--accent-green)";
                 r1.classList.add('sorting-active');
                 r2.classList.add('sorting-active');
-                
-                // Sortable initialize karein taaki user drag kar sake
-                sortable1 = Sortable.create(r1, { animation: 150, delay: 0 });
-                sortable2 = Sortable.create(r2, { animation: 150, delay: 0 });
-                alert("🔧 Arrange Mode On! Ab kisi bhi button ko pakad kar left-right drag karke position change karein.");
+                sortable1 = Sortable.create(r1, { animation: 150 });
+                sortable2 = Sortable.create(r2, { animation: 150 });
             } else {
-                sBtn.innerText = "⚙️ Arrange";
-                sBtn.style.background = "#3a3a3a";
+                sBtn.innerText = "⚙️ Sort";
+                sBtn.style.background = "#1f2937";
                 r1.classList.remove('sorting-active');
                 r2.classList.remove('sorting-active');
-                
-                // Layout save and destroy drag instances
                 if(sortable1) sortable1.destroy();
                 if(sortable2) sortable2.destroy();
-                
-                // Save custom orders to browser storage
                 localStorage.setItem('row1-order', JSON.stringify(Array.from(r1.children).map(c => c.getAttribute('data-id'))));
                 localStorage.setItem('row2-order', JSON.stringify(Array.from(r2.children).map(c => c.getAttribute('data-id'))));
             }
         }
 
-        // Load custom button layouts on startup
         window.addEventListener('DOMContentLoaded', () => {
             const loadOrder = (rowId, storageKey) => {
                 const order = JSON.parse(localStorage.getItem(storageKey));
@@ -241,7 +309,6 @@ for i in range(1, rows + 1):
             loadOrder('row2', 'row2-order');
         });
 
-        // Soft Keyboard listener
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
                 const keyboardBar = document.getElementById('keyboard-bar');
@@ -256,8 +323,8 @@ for i in range(1, rows + 1):
         async function initCompiler() {
             try {
                 pyodideObj = await loadPyodide();
-                consoleOut.innerText = "🐍 Engine Ready. Click RUN.";
-                consoleOut.style.color = "#888";
+                consoleOut.innerText = "🐍 Axolotl Engine v3.11 Online.\nPress RUN to compile.";
+                consoleOut.style.color = "var(--text-gray)";
             } catch(e) { consoleOut.innerText = "❌ Core Error."; }
         }
         initCompiler();
@@ -265,22 +332,21 @@ for i in range(1, rows + 1):
         async function executePython() {
             if (!pyodideObj) return;
             const rawCode = editor.getValue();
-            consoleOut.innerText = "⚡ Running...\n";
-            consoleOut.style.color = "#00ff66";
+            consoleOut.innerText = "⚡ Executing Axolotl Script Environment...\n";
+            consoleOut.style.color = "#00ffcc";
             
-            // Auto-expand terminal on run to show clean output
             document.getElementById('terminal').classList.add('expanded');
-            document.getElementById('sizeBtn').innerText = "▼ SHRINK PANEL";
+            document.getElementById('sizeBtn').innerText = "▼ SHRINK";
 
             pyodideObj.runPython(`import sys, io\nsys.stdout = io.StringIO()\nsys.stderr = io.StringIO()`);
             try {
                 await pyodideObj.runPythonAsync(rawCode);
                 const stdout = pyodideObj.runPython("sys.stdout.getvalue()");
                 const stderr = pyodideObj.runPython("sys.stderr.getvalue()");
-                consoleOut.innerText = (stdout + stderr) || "💡 Executed with no stdout.";
+                consoleOut.innerText = (stdout + stderr) || "💡 Process executed successfully with clear stdout buffer.";
             } catch (err) {
-                consoleOut.style.color = "#ff3333";
-                consoleOut.innerText = "🛑 Error:\n" + err;
+                consoleOut.style.color = "#ff4444";
+                consoleOut.innerText = "🛑 Syntax/Runtime Exception:\n" + err;
             }
         }
     </script>
