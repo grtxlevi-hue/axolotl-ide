@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axolotl Cyberpunk IDE</title>
+    <title>Python Premium Cyberpunk IDE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
@@ -20,7 +20,7 @@
 
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Premium Axolotl Theme Header */
+        /* Premium Cyberpunk Header */
         .navbar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 10px 15px; border-bottom: 2px solid #1f2937; height: 50px; box-sizing: border-box; }
         .title { font-weight: bold; font-size: 14px; color: var(--accent-neon); font-family: monospace; display: flex; align-items: center; gap: 6px; }
         .nav-actions { display: flex; gap: 8px; align-items: center; }
@@ -33,7 +33,7 @@
         .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 50px); position: relative; background: var(--bg-dark); }
         #editor { flex-grow: 1; width: 100%; background: #0f1423 !important; font-size: 16px; }
         
-        /* 🚀 High capacity auto-scroll Terminal panel */
+        /* 🚀 High capacity Scrollable Terminal panel */
         .terminal-panel { 
             height: 28%; 
             background: #05070c; 
@@ -60,10 +60,26 @@
         .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
         
         /* Fixed scroll container for large outputs */
-        .output-container { flex-grow: 1; overflow-y: auto; overflow-x: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; }
-        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre; line-height: 1.5; }
+        .output-container { 
+            flex-grow: 1; 
+            overflow: auto; /* Enables both vertical and horizontal scroll */
+            padding: 12px; 
+            margin: 0; 
+            box-sizing: border-box; 
+            display: block;
+            -webkit-overflow-scrolling: touch;
+        }
+        #output { 
+            margin: 0; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 14px; 
+            color: #51ff85; 
+            white-space: pre; /* Keeps code structure and newlines intact */
+            overflow: visible; /* Allows container to manage scrollbars */
+            line-height: 1.5; 
+        }
         
-        /* 🛠️ Modern Hybrid Keyboard Overlay Toolbar */
+        /* 🛠️ Modern Keyboard Overlay Toolbar */
         .shortcut-bar { 
             position: fixed; 
             bottom: 0; 
@@ -107,7 +123,7 @@
         .shortcut-btn:active { background: #2a3447; }
         .special-btn { font-size: 11px; color: #9ca3af; font-weight: bold; background: #111622; }
         
-        /* CTRL Active Glow State */
+        /* CTRL Active State */
         .shortcut-btn.ctrl-active {
             background: var(--accent-neon) !important;
             color: #000 !important;
@@ -123,16 +139,16 @@
 <body>
 
     <div class="navbar">
-        <div class="title">🦎 <span>axolotl.py</span></div>
+        <div class="title">🐍 <span>main.py</span></div>
         <div class="nav-actions">
-            <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()" title="Toggle Keyboard Buttons">👁️ Bar</button>
+            <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()">👁️ Bar On</button>
             <button class="nav-btn" id="sortToggle" onclick="toggleSorting()">⚙️ Sort</button>
             <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
         </div>
     </div>
 
     <div class="main-container">
-        <div id="editor"># Axolotl Engine
+        <div id="editor"># Python 3 Environment
 rows = 15
 for i in range(1, rows + 1):
     print(' ' * (rows - i) + '*' * (2 * i - 1))
@@ -140,14 +156,14 @@ for i in range(1, rows + 1):
         <div class="padding-bottom-fix" id="bottom-pad"></div>
     </div>
 
-    <!-- Scrollproof High capacity Terminal Console -->
+    <!-- Scroll-enabled Terminal Console -->
     <div class="terminal-panel" id="terminal">
         <div class="terminal-header">
-            <span>⚡ AXOLOTL SYSTEM CONSOLE</span>
+            <span>⚡ PYTHON CONSOLE</span>
             <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
         </div>
         <div class="output-container">
-            <pre id="output">⏳ Environment Initializing...</pre>
+            <pre id="output">⏳ Loading Python Environment...</pre>
         </div>
     </div>
 
@@ -196,7 +212,6 @@ for i in range(1, rows + 1):
 
         function insertSymbol(symbol) { editor.insert(symbol); editor.focus(); }
 
-        // 1) 👁️ Extra Bar ON/OFF Toggle Functionality
         function toggleShortcutBar() {
             const bar = document.getElementById('keyboard-bar');
             const pad = document.getElementById('bottom-pad');
@@ -215,7 +230,6 @@ for i in range(1, rows + 1):
             }
         }
 
-        // 2) 🚀 Resizable Terminal panel & clean scrolling
         function toggleTerminalSize() {
             const term = document.getElementById('terminal');
             const btn = document.getElementById('sizeBtn');
@@ -228,7 +242,6 @@ for i in range(1, rows + 1):
             }
         }
 
-        // 3) 🎛️ Intelligent Virtual CTRL State Handling
         let isCtrlActive = false;
         function toggleCtrlKey() {
             isCtrlActive = !isCtrlActive;
@@ -241,7 +254,6 @@ for i in range(1, rows + 1):
             }
         }
 
-        // Capturing key events inside Ace Editor to intercept when virtual CTRL is active
         editor.textInput.onKeyDown = function(e) {
             if (isCtrlActive) {
                 const key = e.key.toLowerCase();
@@ -258,13 +270,12 @@ for i in range(1, rows + 1):
                 if(triggered) {
                     e.preventDefault();
                     e.stopPropagation();
-                    toggleCtrlKey(); // Auto reset state after shortcut execution
+                    toggleCtrlKey();
                     return false;
                 }
             }
         };
 
-        // 🛠️ Sorting Layout logic
         let sortable1, sortable2;
         let isSortingActive = false;
 
@@ -323,7 +334,7 @@ for i in range(1, rows + 1):
         async function initCompiler() {
             try {
                 pyodideObj = await loadPyodide();
-                consoleOut.innerText = "🐍 Axolotl Engine v3.11 Online.\nPress RUN to compile.";
+                consoleOut.innerText = "🐍 Python 3.11 Environment Ready.\nPress RUN to compile.";
                 consoleOut.style.color = "var(--text-gray)";
             } catch(e) { consoleOut.innerText = "❌ Core Error."; }
         }
@@ -332,7 +343,7 @@ for i in range(1, rows + 1):
         async function executePython() {
             if (!pyodideObj) return;
             const rawCode = editor.getValue();
-            consoleOut.innerText = "⚡ Executing Axolotl Script Environment...\n";
+            consoleOut.innerText = "⚡ Running Python Script...\n";
             consoleOut.style.color = "#00ffcc";
             
             document.getElementById('terminal').classList.add('expanded');
