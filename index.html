@@ -9,6 +9,10 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-dracula.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-twilight.js"></script>
@@ -45,19 +49,15 @@
         .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 110px); position: relative; background: var(--bg-dark); overflow: hidden; }
         #editor { flex-grow: 1; width: 100%; height: 100%; background: #0f1423 !important; font-size: 16px; overflow: auto; }
         
-        /* High Capacity Scrollable Terminal Panel */
+        /* High Capacity Scrollable VS Code Terminal Engine Panel */
         .terminal-panel { height: 35%; background: #05070c; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; flex-shrink: 0; }
         .terminal-panel.expanded { height: 75% !important; }
         .terminal-header { background: #0d1321; padding: 8px 15px; font-size: 11px; font-weight: bold; color: var(--text-gray); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937; letter-spacing: 1px; }
         .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
         
-        .output-container { flex-grow: 1; overflow: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; -webkit-overflow-scrolling: touch; }
-        
-        /* Pure Terminal Canvas */
-        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre-wrap; word-break: break-all; line-height: 1.5; width: 100%; outline: none; }
-        
-        /* 🕹️ True Inline Content Editable Cursor Element */
-        .inline-input-node { display: inline-block; min-width: 10px; background: transparent; border: none; outline: none; color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 14px; font-weight: bold; padding: 0; margin: 0; border-bottom: 2px solid var(--accent-neon); caret-color: var(--accent-neon); }
+        /* VS Code Engine Anchor */
+        .terminal-container-target { flex-grow: 1; width: 100%; padding: 6px; box-sizing: border-box; overflow: hidden; background: #05070c; }
+        .xterm .xterm-viewport { overflow-y: auto !important; }
 
         /* Modern Smart Keyboard Toolbar */
         .shortcut-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d111a; border-top: 1px solid #242b35; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; box-sizing: border-box; z-index: 9999; transition: transform 0.2s ease, opacity 0.2s ease; }
@@ -108,12 +108,10 @@
 
     <div class="terminal-panel" id="terminal">
         <div class="terminal-header">
-            <span>⚡ PYTHON CONSOLE <span id="timer-label" style="color:var(--accent-neon); margin-left:10px;"></span></span>
+            <span>⚡ VS-CODE INTERACTIVE CONSOLE <span id="timer-label" style="color:var(--accent-neon); margin-left:10px;"></span></span>
             <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
         </div>
-        <div class="output-container" id="terminal-scroll-area">
-            <div id="output">⏳ Python 3.11 Runtime Core Engine Booting...</div>
-        </div>
+        <div class="terminal-container-target" id="terminal-host"></div>
     </div>
 
     <div class="shortcut-bar" id="keyboard-bar">
@@ -158,11 +156,7 @@
         editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: currentFontSize + "px", wrap: false });
 
         function insertSymbol(symbol) { editor.insert(symbol); editor.focus(); }
-
-        function changeTheme() {
-            const chosen = document.getElementById('themeSelect').value;
-            editor.setTheme(chosen);
-        }
+        function changeTheme() { editor.setTheme(document.getElementById('themeSelect').value); }
 
         function adjustFontSize(delta) {
             currentFontSize += delta;
@@ -182,30 +176,20 @@
 
         function insertSnippet(type) {
             let chunk = "";
-            if(type === 'for') {
-                chunk = "for i in range(5):\n    print(i)\n";
-            } else if(type === 'def') {
-                chunk = "def my_function():\n    return \"Success\"\n";
-            } else if(type === 'list') {
-                chunk = "my_list = [x for x in range(10)]\n";
-            }
-            editor.insert(chunk);
-            editor.focus();
+            if(type === 'for') chunk = "for i in range(5):\n    print(i)\n";
+            else if(type === 'def') chunk = "def my_function():\n    return \"Success\"\n";
+            else if(type === 'list') chunk = "my_list = [x for x in range(10)]\n";
+            editor.insert(chunk); editor.focus();
         }
 
         function toggleShortcutBar() {
             const bar = document.getElementById('keyboard-bar');
             const pad = document.getElementById('bottom-pad');
             const btn = document.getElementById('toggleBarBtn');
-            
             if(bar.classList.contains('hidden')) {
-                bar.classList.remove('hidden');
-                pad.style.display = "block";
-                btn.innerText = "👁️ Bar On";
+                bar.classList.remove('hidden'); pad.style.display = "block"; btn.innerText = "👁️ Bar On";
             } else {
-                bar.classList.add('hidden');
-                pad.style.display = "none";
-                btn.innerText = "👁️ Bar Off";
+                bar.classList.add('hidden'); pad.style.display = "none"; btn.innerText = "👁️ Bar Off";
             }
         }
 
@@ -213,24 +197,19 @@
             const term = document.getElementById('terminal');
             const btn = document.getElementById('sizeBtn');
             if(term.classList.contains('expanded')) {
-                term.classList.remove('expanded');
-                btn.innerText = "▲ EXPAND";
+                term.classList.remove('expanded'); btn.innerText = "▲ EXPAND";
             } else {
-                term.classList.add('expanded');
-                btn.innerText = "▼ SHRINK";
+                term.classList.add('expanded'); btn.innerText = "▼ SHRINK";
             }
+            setTimeout(() => { if(fitAddon) fitAddon.fit(); }, 350);
         }
 
         let isCtrlActive = false;
         function toggleCtrlKey() {
             isCtrlActive = !isCtrlActive;
             const ctrlBtn = document.getElementById('ctrl-btn');
-            if(isCtrlActive) {
-                ctrlBtn.classList.add('ctrl-active');
-                editor.focus();
-            } else {
-                ctrlBtn.classList.remove('ctrl-active');
-            }
+            if(isCtrlActive) { ctrlBtn.classList.add('ctrl-active'); editor.focus(); }
+            else { ctrlBtn.classList.remove('ctrl-active'); }
         }
 
         editor.textInput.onKeyDown = function(e) {
@@ -246,14 +225,12 @@
                 else triggered = false;
 
                 if(triggered) {
-                    e.preventDefault(); e.stopPropagation();
-                    toggleCtrlKey(); return false;
+                    e.preventDefault(); e.stopPropagation(); toggleCtrlKey(); return false;
                 }
             }
         };
 
-        let sortable1, sortable2;
-        let isSortingActive = false;
+        let sortable1, sortable2; let isSortingActive = false;
         function toggleSorting() {
             const r1 = document.getElementById('row1'); const r2 = document.getElementById('row2');
             const sBtn = document.getElementById('sortToggle'); isSortingActive = !isSortingActive;
@@ -286,95 +263,184 @@
                 const keyboardBar = document.getElementById('keyboard-bar');
                 const heightDiff = window.innerHeight - window.visualViewport.height;
                 keyboardBar.style.bottom = heightDiff > 0 ? heightDiff + 'px' : '0px';
+                if(fitAddon) fitAddon.fit();
             });
         }
 
-        // --- 🕹️ ADVANCED REAL INLINE TERMINAL INPUT SYSTEM ---
+        // --- 🚀 ULTIMATE NATIVE VS-CODE TERMINAL EMULATOR ENGINE ---
         let pyodideObj = null;
-        const consoleOut = document.getElementById("output");
-        let currentInputResolve = null;
+        let termEngine = null;
+        let fitAddon = null;
+        
+        let termInputMode = "shell"; // Options: "shell" (REPL mode) or "program" (Python standard input block)
+        let activeInputResolver = null;
+        let currentLineBuffer = "";
 
-        function handleTerminalInlineInput(promptText) {
-            return new Promise((resolve) => {
-                currentInputResolve = resolve;
+        // Setup clean Xterm UI Engine
+        function initTerminalEngine() {
+            termEngine = new Terminal({
+                cursorBlink: true,
+                fontSize: 13,
+                fontFamily: "'Courier New', Courier, monospace",
+                theme: {
+                    background: '#05070c',
+                    foreground: '#51ff85',
+                    cursor: '#00ffcc',
+                    selectionBackground: 'rgba(0, 255, 204, 0.3)'
+                },
+                allowProposedApi: true
+            });
+            
+            fitAddon = new window.FitAddon.FitAddon();
+            termEngine.loadAddon(fitAddon);
+            termEngine.open(document.getElementById('terminal-host'));
+            fitAddon.fit();
+
+            termEngine.writeln("\x1b[1;36m⚙️ Loading High-Capacity Python 3.11 WASM Engine...\x1b[0m");
+
+            // Global Key Intercept stream for standard PTY emulation
+            termEngine.onData(data => {
+                const charCode = data.charCodeAt(0);
                 
-                // 1. Clear text from previous prompt symbols if any, then append the question text
-                consoleOut.innerHTML += promptText;
-
-                // 2. Safely inject a real contenteditable node directly inside the text sequence flow
-                const inputNode = document.createElement("span");
-                inputNode.className = "inline-input-node";
-                inputNode.setAttribute("contenteditable", "true");
-                inputNode.setAttribute("autofocus", "true");
-                
-                consoleOut.appendChild(inputNode);
-                
-                // Force focus on the mobile keyboard
-                setTimeout(() => {
-                    inputNode.focus();
-                    // Move cursor inside it
-                    const range = document.createRange();
-                    const sel = window.getSelection();
-                    range.selectNodeContents(inputNode);
-                    range.collapse(false);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }, 50);
-
-                // Auto Scroll down smoothly
-                const scrollArea = document.getElementById("terminal-scroll-area");
-                scrollArea.scrollTop = scrollArea.scrollHeight;
-
-                // 3. Catch user submit hit via inline listeners
-                inputNode.addEventListener("keydown", function(e) {
-                    if (e.key === "Enter") {
-                        e.preventDefault(); // stop line-break injection
-                        const enteredVal = inputNode.innerText;
-                        
-                        // Replace editable block with clean solid finalized text string
-                        inputNode.remove();
-                        consoleOut.innerHTML += enteredVal + "\n";
-                        
-                        currentInputResolve(enteredVal);
+                if (data === '\r') { // Enter key pressed
+                    termEngine.write('\r\n');
+                    processTerminalBufferSubmission(currentLineBuffer);
+                    currentLineBuffer = "";
+                } 
+                else if (data === '\u007f') { // Backspace handling
+                    if (currentLineBuffer.length > 0) {
+                        currentLineBuffer = currentLineBuffer.slice(0, -1);
+                        termEngine.write('\b \b');
                     }
-                });
+                } 
+                else if (charCode >= 32 && charCode <= 126) { // Visible ASCII stream chars
+                    currentLineBuffer += data;
+                    termEngine.write(data);
+                }
+            });
+        }
+
+        // Action routing logic when enter is smashed inside terminal channel
+        async function processTerminalBufferSubmission(lineData) {
+            if (termInputMode === "program") {
+                // Return current buffer straight into executing python runtime script
+                if (activeInputResolver) {
+                    const resolveBackup = activeInputResolver;
+                    activeInputResolver = null;
+                    resolveBackup(lineData);
+                }
+            } 
+            else if (termInputMode === "shell") {
+                // Interactive Shell Execution Mode (REPL Environment)
+                if (!pyodideObj) return;
+                const trimmed = lineData.trim();
+                if (trimmed === "clear") {
+                    termEngine.clear();
+                    printPromptHeader();
+                    return;
+                }
+                if (!trimmed) {
+                    printPromptHeader();
+                    return;
+                }
+
+                // Temporary stream hooks for interactive shell evaluations
+                pyodideObj.runPython(`
+import sys, io
+sys.stdout = io.StringIO()
+sys.stderr = io.StringIO()
+                `);
+
+                try {
+                    // Try evaluating as expression first, if fails run as normal statement
+                    let result;
+                    try {
+                        result = await pyodideObj.runPythonAsync(trimmed);
+                    } catch {
+                        result = await pyodideObj.runPythonAsync(trimmed);
+                    }
+                    
+                    const stdout = pyodideObj.runPython("sys.stdout.getvalue()");
+                    const stderr = pyodideObj.runPython("sys.stderr.getvalue()");
+                    
+                    if (stdout) termEngine.write(stdout.replace(/\n/g, '\r\n'));
+                    if (stderr) termEngine.write('\x1b[31m' + stderr.replace(/\n/g, '\r\n') + '\x1b[0m');
+                    
+                    // Print evaluations results if any returned
+                    if (result !== undefined && result !== null) {
+                        termEngine.writeln(String(result));
+                    }
+                } catch (err) {
+                    termEngine.writeln('\x1b[31m🛑 Error: ' + err.message + '\x1b[0m');
+                }
+                printPromptHeader();
+            }
+        }
+
+        function printPromptHeader() {
+            termEngine.write('\r\n\x1b[1;33m>>> \x1b[0m');
+        }
+
+        // Bridge function exposed to standard inputs in Python context
+        function requestRuntimeInputFromTerminal(promptText) {
+            return new Promise((resolve) => {
+                termInputMode = "program";
+                if(promptText) {
+                    // Normalize standard formatting line break for raw xterm compatibility
+                    termEngine.write(promptText.replace(/\n/g, '\r\n'));
+                }
+                activeInputResolver = resolve;
             });
         }
 
         async function initCompiler() {
+            initTerminalEngine();
             try {
                 pyodideObj = await loadPyodide();
-                self.customInlineReader = handleTerminalInlineInput;
-                consoleOut.innerHTML = "🐍 Python 3.11 Environment Ready.<br>Write your code and press RUN.";
-                consoleOut.style.color = "var(--text-gray)";
-            } catch(e) { consoleOut.innerHTML = "❌ Core Error Booting Workspace Components."; }
+                
+                // Expose core input hooks into window context
+                self.jsTerminalInputBridge = requestRuntimeInputFromTerminal;
+                
+                termEngine.clear();
+                termEngine.writeln("\x1b[1;32m🐍 Python Runtime Core Engine Booted Successfully!\x1b[0m");
+                termEngine.writeln("💡 Press '\x1b[1;36m▶ RUN\x1b[0m' at the top to execute scripts.");
+                printPromptHeader();
+            } catch(e) { 
+                termEngine.writeln("\x1b[31m❌ Core Error Booting Workspace Components.\x1b[0m"); 
+            }
         }
         initCompiler();
 
         async function executePython() {
             if (!pyodideObj) return;
-            const rawCode = editor.getValue();
-            consoleOut.innerHTML = "⚡ Running Python Script...<br>";
-            consoleOut.style.color = "#51ff85";
             
+            const rawCode = editor.getValue();
+            
+            // Expand panel for perfect outputs visibility 
             document.getElementById('terminal').classList.add('expanded');
             document.getElementById('sizeBtn').innerText = "▼ SHRINK";
+            setTimeout(() => { fitAddon.fit(); }, 350);
 
+            termEngine.clear();
+            termEngine.writeln("\x1b[1;36m⚡ Running Python Script...\x1b[0m\r\n");
+            
+            // Set dynamic trap status
+            termInputMode = "program";
             const startTime = performance.now();
 
-            // Core standard stream intercepts
+            // Native sys pipes redirection 
             pyodideObj.runPython(`
 import sys, io, builtins
 sys.stdout = io.StringIO()
 sys.stderr = io.StringIO()
 
-def inline_input_bridge(prompt=""):
-    from js import customInlineReader
-    # Synchronously call through javascript task system 
-    promise = customInlineReader(prompt)
+def custom_emulated_input(prompt=""):
+    from js import jsTerminalInputBridge
+    # Suspend runtime context safely utilizing JS standard async promise chains
+    promise = jsTerminalInputBridge(prompt)
     return promise
 
-builtins.input = inline_input_bridge
+builtins.input = custom_emulated_input
             `);
 
             try {
@@ -387,20 +453,20 @@ builtins.input = inline_input_bridge
                 const totalDuration = (endTime - startTime).toFixed(1);
                 document.getElementById('timer-label').innerText = `(${totalDuration}ms)`;
 
-                // Append remaining final buffered stdout logs safely
-                if(stdout || stderr) {
-                    consoleOut.innerHTML += (stdout + stderr);
-                } else if(!consoleOut.innerHTML.includes("\n") && consoleOut.innerHTML.endsWith("...<br>")) {
-                    consoleOut.innerHTML += "<br>💡 Process executed successfully with clear output buffer.";
-                }
+                // Write outputs with pristine carriage configuration formatting
+                if (stdout) termEngine.write(stdout.replace(/\n/g, '\r\n'));
+                if (stderr) termEngine.write('\x1b[31m' + stderr.replace(/\n/g, '\r\n') + '\x1b[0m');
+                
+                termEngine.writeln("\r\n\x1b[1;32m💡 Process executed successfully.\x1b[0m");
             } catch (err) {
                 document.getElementById('timer-label').innerText = "(Error)";
-                consoleOut.style.color = "#ff4444";
-                consoleOut.innerHTML += "<br>🛑 Runtime Exception:<br>" + err;
+                termEngine.writeln('\r\n\x1b[31m🛑 Syntax/Runtime Exception:\x1b[0m');
+                termEngine.writeln('\x1b[31m' + String(err).replace(/\n/g, '\r\n') + '\x1b[0m');
             }
-            
-            const scrollArea = document.getElementById("terminal-scroll-area");
-            scrollArea.scrollTop = scrollArea.scrollHeight;
+
+            // Restore terminal status back to dynamic Shell interactive mode
+            termInputMode = "shell";
+            printPromptHeader();
         }
     </script>
 </body>
