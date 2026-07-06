@@ -3,129 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Professional Cyberpunk IDE</title>
+    <title>Python Cloud Enterprise IDE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
     <style>
-        :root { --bg-dark: #0b0f19; --panel-bg: #111827; --accent-neon: #00ffcc; --accent-green: #2ecc71; --text-gray: #9ca3af; }
-        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+        :root {
+            --bg-dark: #070a13;
+            --panel-bg: #0f1423;
+            --accent-neon: #00ffcc;
+            --accent-green: #2ecc71;
+            --text-gray: #9ca3af;
+            --sidebar-width: 140px;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
         
-        .navbar { background: #1e222b; border-bottom: 2px solid #282c34; padding: 6px 12px; display: flex; flex-direction: column; gap: 6px; }
-        .nav-top { display: flex; justify-content: space-between; align-items: center; }
-        .title { font-weight: bold; color: var(--accent-neon); font-family: monospace; }
-        .nav-controls { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; }
+        /* Premium Layout Navbar */
+        .navbar { display: flex; flex-direction: column; background: var(--panel-bg); border-bottom: 2px solid #1f2937; padding: 6px 12px; gap: 6px; box-sizing: border-box; }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .title { font-weight: bold; font-size: 14px; color: var(--accent-neon); font-family: monospace; display: flex; align-items: center; gap: 6px; }
+        .nav-actions { display: flex; gap: 6px; align-items: center; }
+        
+        .nav-controls { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
         .nav-controls::-webkit-scrollbar { display: none; }
         
-        .nav-btn { background: #1f2937; color: #fff; border: 1px solid #374151; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap; }
-        .run-btn { background: #4b6fff; color: white; border: none; padding: 6px 14px; font-weight: bold; }
+        .nav-btn { background: #1f2937; color: #fff; border: 1px solid #374151; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+        .run-btn { background: var(--accent-green); color: #fff; font-weight: bold; border: none; padding: 6px 14px; box-shadow: 0 0 10px rgba(46,204,113,0.3); font-size: 12px; }
+        select.nav-btn { background-color: #1f2937; color: #fff; outline: none; }
 
-        .main-container { flex-grow: 1; display: flex; flex-direction: column; height: calc(100% - 110px); }
-        #editor { flex-grow: 1; width: 100%; }
-
-        /* Acode Style Output Console */
-        #console-panel { height: 35%; background: #111318; border-top: 2px solid #282c34; display: flex; flex-direction: column; }
-        .console-header { background: #1e222b; padding: 6px 12px; font-size: 11px; color: #abb2bf; font-weight: bold; }
-        #console-output { flex-grow: 1; padding: 10px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 14px; white-space: pre-wrap; color: #98c379; }
-        .error-text { color: #e06c75; }
-
-        /* Shortcut Bar */
-        .shortcut-bar { position: fixed; bottom: 0; width: 100%; background: #0d111a; border-top: 1px solid #242b35; padding: 4px 2px; z-index: 9999; }
-        .shortcut-row { display: flex; gap: 4px; overflow-x: auto; padding: 2px; }
-        .shortcut-btn { background: #161c26; color: white; border: 1px solid #242b35; padding: 8px; border-radius: 4px; min-width: 40px; text-align: center; font-family: monospace; }
-        .padding-bottom-fix { height: 90px; }
+        /* Workspace with Explorer Sidebar */
+        .workspace { display: flex; flex-grow: 1; width: 100%; height: 100%; position: relative; overflow: hidden; }
+        
+        .sidebar { width: var(--sidebar-width); background: #0b0f19; border-right: 1px solid #1f2937; display: flex; flex-direction: column; padding: 8px; box-sizing: border-box; font-size: 12px; }
+        .sidebar-header { font-weight: bold; color: var(--text-gray); margin-bottom: 8px; font-size: 11px; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+        .file-list { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .file-item { padding: 4px 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; color: #cbd5e1; word-break: break-all; }
+        .file-item:hover, .file-item.active { background: #1e293b; color: var(--accent-neon); }
+        
+        .editor-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100%; width: calc(100% - var(--sidebar-width)); }
+        #editor { flex-grow: 1; width: 100%; background: #090d16 !important; font-size: 16px; }
+        
+        /* High Capacity Scrollable Terminal Panel */
+        .terminal-panel { height: 30%; background: #04060a; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; }
+        .terminal-panel.expanded { height: 75% !important; }
+        .terminal-header { background: #0a0e1a; padding: 8px 15px; font-size: 11px; font-weight: bold; color: var(--text-gray); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937; }
+        .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
+        
+        .terminal-tabs { display: flex; background: #070a14; border-bottom: 1px solid #1f2937; }
+        .term-tab { padding: 6px 12px; font-size: 11px; cursor: pointer; color: var(--text-gray); border-right: 1px solid #1f2937; }
+        .term-tab.active { background: #04060a; color: var(--accent-neon); font-weight: bold; }
+        
+        .output-container { flex-grow: 1; overflow: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; -webkit-overflow-scrolling: touch; }
+        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #51ff85; white-space: pre; line-height: 1.5; }
+        
+        /* PIP Manager mini view */
+        .pip-container { display: none; padding: 12px; gap: 8px; flex-direction: column; }
+        .pip-input-row { display: flex; gap: 6px; }
+        .pip-input { flex-grow: 1; background: #1e293b; border: 1px solid #374151; border-radius: 4px; color: #fff; padding: 4px 8px; font-size: 12px; outline: none; }
+        
+        /* Keyboard Sub Bar Overlay */
+        .shortcut-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0d14; border-top: 1px solid #242b35; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; box-sizing: border-box; z-index: 9999; }
+        .shortcut-bar.hidden { display: none; }
+        .shortcut-row { display: flex; overflow-x: auto; gap: 4px; padding: 2px 4px; -webkit-overflow-scrolling: touch; }
+        .shortcut-row::-webkit-scrollbar { display: none; }
+        
+        .shortcut-btn { background: #141822; color: #ffffff; border: 1px solid #242b35; border-radius: 6px; min-width: 44px; height: 36px; font-family: monospace; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
+        .special-btn { font-size: 11px; color: #9ca3af; font-weight: bold; background: #0f121a; }
+        .shortcut-btn.ctrl-active { background: var(--accent-neon) !important; color: #000 !important; font-weight: bold; }
+        .shortcut-row.sorting-active { border: 1px dashed var(--accent-neon); }
+        
+        .padding-bottom-fix { height: 90px; background: transparent; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
         <div class="nav-top">
-            <div class="title">main.py</div>
-            <button class="nav-btn run-btn" onclick="executePython()">RUN CODE</button>
+            <div class="title">🐍 <span>Python Workspace</span> <span id="user-scope" style="font-size:10px; color:var(--text-gray);">[Private Cloud Mode]</span></div>
+            <div class="nav-actions">
+                <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()">👁️ Bar On</button>
+                <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
+            </div>
         </div>
-        <div class="nav-controls" id="controls-row">
-            <select class="nav-btn" onchange="editor.setTheme(this.value)">
+        <div class="nav-controls">
+            <select class="nav-btn" id="themeSelect" onchange="changeTheme()">
                 <option value="ace/theme/monokai">Monokai</option>
                 <option value="ace/theme/dracula">Dracula</option>
+                <option value="ace/theme/tomorrow_night">One Dark</option>
             </select>
-            <button class="nav-btn" onclick="editor.setFontSize(editor.getFontSize()+2)">➕</button>
-            <button class="nav-btn" onclick="editor.setFontSize(editor.getFontSize()-2)">➖</button>
-            <button class="nav-btn" onclick="toggleSorting()">⚙️ Sort</button>
+            <button class="nav-btn" onclick="adjustFontSize(1)">➕ Font</button>
+            <button class="nav-btn" onclick="adjustFontSize(-1)">➖ Font</button>
+            <button class="nav-btn" onclick="downloadCode()">📥 Export .py</button>
+            <button class="nav-btn" id="sortToggle" onclick="toggleSorting()">⚙️ Sort</button>
+            <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('for')">⚡ Loop</button>
+            <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('def')">⚡ Func</button>
         </div>
     </div>
 
-    <div class="main-container">
-        <div id="editor"></div>
-        <div class="padding-bottom-fix"></div>
+    <div class="workspace">
+        <!-- 📂 VS-Code Style File Explorer Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>FILES</span>
+                <button onclick="createNewFile()" style="background:none; border:none; color:var(--accent-neon); cursor:pointer; font-weight:bold;">+ New</button>
+            </div>
+            <div class="file-list" id="files-container">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Central Document Editor Frame -->
+        <div class="editor-container">
+            <div id="editor"></div>
+            <div class="padding-bottom-fix" id="bottom-pad"></div>
+        </div>
     </div>
 
-    <div id="console-panel">
-        <div class="console-header">OUTPUT CONSOLE</div>
-        <div id="console-output">Ready...</div>
+    <!-- Dual Tab Console: Output Terminal + PIP Package Manager -->
+    <div class="terminal-panel" id="terminal">
+        <div class="terminal-header">
+            <span>⚡ CONSOLE MONITOR <span id="timer-label" style="color:var(--accent-neon); margin-left:10px;"></span></span>
+            <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
+        </div>
+        <div class="terminal-tabs">
+            <div class="term-tab active" id="tab-terminal-btn" onclick="switchTerminalTab('output')">Console Output</div>
+            <div class="term-tab" id="tab-pip-btn" onclick="switchTerminalTab('pip')">PIP Package Installer</div>
+        </div>
+        
+        <!-- Tab 1: Output Buffer -->
+        <div class="output-container" id="terminal-output-view">
+            <pre id="output">⏳ Initializing Python Environment Components...</pre>
+        </div>
+
+        <!-- Tab 2: PIP Packages Terminal Emulator -->
+        <div class="pip-container" id="terminal-pip-view">
+            <div style="font-size:11px; color:var(--text-gray); margin-bottom:6px;">Pyodide Virtual Environment Client-Side pip manager:</div>
+            <div class="pip-input-row">
+                <input type="text" class="pip-input" id="pip-pkg-name" placeholder="e.g. requests, numpy, micropip">
+                <button class="nav-btn" style="background:var(--accent-neon); color:#000; font-weight:bold; border:none;" onclick="runPipInstall()">Install</button>
+            </div>
+            <pre id="pip-status" style="margin:8px 0 0 0; font-family:monospace; font-size:12px; color:#9ca3af;">Ready to install optional libraries.</pre>
+        </div>
     </div>
 
+    <!-- Smart Virtual Key Control Deck -->
     <div class="shortcut-bar" id="keyboard-bar">
         <div class="shortcut-row" id="row1">
-            <div class="shortcut-btn" onclick="insertSymbol(';')">;</div>
-            <div class="shortcut-btn" onclick="insertSymbol('\'')">'</div>
-            <div class="shortcut-btn" onclick="insertSymbol('\"')">"</div>
-            <div class="shortcut-btn" onclick="insertSymbol('=')">=</div>
-            <div class="shortcut-btn" onclick="insertSymbol('(')">(</div>
-            <div class="shortcut-btn" onclick="insertSymbol(')')">)</div>
+            <div class="shortcut-btn special-btn" id="ctrl-btn" data-id="ctrl" onclick="toggleCtrlKey()">CTRL</div>
+            <div class="shortcut-btn special-btn" data-id="tab" onclick="insertSymbol('    ')">➔|</div>
+            <div class="shortcut-btn special-btn" data-id="shft">SHFT</div>
+            <div class="shortcut-btn special-btn" data-id="undo" onclick="editor.undo()">↩</div>
+            <div class="shortcut-btn special-btn" data-id="redo" onclick="editor.redo()">↪</div>
+            <div class="shortcut-btn special-btn" data-id="find" onclick="editor.execCommand('find')">🔍</div>
+            <div class="shortcut-btn special-btn" data-id="selectall" onclick="editor.selectAll(); editor.focus();">⌘A</div>
+            <div class="shortcut-btn special-btn" data-id="esc">ESC</div>
+        </div>
+        <div class="shortcut-row" id="row2">
+            <div class="shortcut-btn" data-id="semi" onclick="insertSymbol(';')">;</div>
+            <div class="shortcut-btn" data-id="squote" onclick="insertSymbol('\'')">'</div>
+            <div class="shortcut-btn" data-id="dquote" onclick="insertSymbol('\"')">"</div>
+            <div class="shortcut-btn" data-id="and" onclick="insertSymbol('&amp;')">&amp;</div>
+            <div class="shortcut-btn" data-id="or" onclick="insertSymbol('|')">|</div>
+            <div class="shortcut-btn" data-id="eq" onclick="insertSymbol('=')">=</div>
+            <div class="shortcut-btn" data-id="slash" onclick="insertSymbol('/')">/</div>
+            <div class="shortcut-btn" data-id="excl" onclick="insertSymbol('!')">!</div>
+            <div class="shortcut-btn" data-id="colon" onclick="insertSymbol(':')">:</div>
+            <div class="shortcut-btn" data-id="lparen" onclick="insertSymbol('(')">(</div>
+            <div class="shortcut-btn" data-id="rparen" onclick="insertSymbol(')')">)</div>
+            <div class="shortcut-btn" data-id="lbracket" onclick="insertSymbol('[')">[</div>
+            <div class="shortcut-btn" data-id="rbracket" onclick="insertSymbol(']')">]</div>
         </div>
     </div>
 
     <script>
+        const tg = Telegram.WebApp;
+        tg.ready(); tg.expand();
+
+        // Safe Private user isolation mapping logic via Telegram InitData
+        let userId = (tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : "local_sandbox_user";
+        document.getElementById('user-scope').innerText = `[User Context: ${userId}]`;
+
+        // Local Multi-file Database System structure simulation
+        let virtualFiles = JSON.parse(localStorage.getItem(`ide_files_${userId}`)) || {
+            "main.py": "# Fresh Workspace Started\nprint('Hello World!')\n"
+        };
+        let activeFile = "main.py";
+
+        let currentFontSize = 16;
         const editor = ace.edit("editor");
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/python");
+        editor.setShowPrintMargin(false);
+        editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: currentFontSize + "px", wrap: false });
 
-        let pyodide = null;
-        let hasError = false;
-        const out = document.getElementById("console-output");
-
-        async function init() {
-            pyodide = await loadPyodide();
-            out.innerText = "Python Ready!";
-        }
-        init();
-
-        function insertSymbol(s) { editor.insert(s); editor.focus(); }
-
-        function acodeInputBridge(promptText) {
-            if (hasError) return "";
-            let res = prompt(promptText);
-            out.innerText += (promptText || "") + (res || "") + "\n";
-            return res || "";
-        }
-
-        async function executePython() {
-            out.innerHTML = ""; hasError = false;
-            pyodide.runPython(`
-                import sys, io, builtins
-                from js import acodeInputBridge
-                sys.stdout = io.StringIO()
-                builtins.input = acodeInputBridge
-            `);
+        // Sync contents on input change
+        editor.on("input", () => {
+            virtualFiles[activeFile] = editor.getValue();
+            localStorage.setItem(`ide_files_${userId}`, JSON.stringify(virtualFiles));
+            
+            // 🔍 Micro Syntax-Linter check logic
             try {
-                await pyodide.runPythonAsync(editor.getValue());
-                out.innerText += pyodide.runPython("sys.stdout.getvalue()");
-            } catch (err) {
-                hasError = true;
-                let eDiv = document.createElement('div');
-                eDiv.className = 'error-text';
-                eDiv.innerText = err;
-                out.appendChild(eDiv);
+                const annotations = editor.session.getAnnotations();
+                if (annotations.some(a => a.type === "error")) {
+                    document.getElementById('timer-label').innerText = "⚠️ Syntax Err";
+                    document.getElementById('timer-label').style.color = "#ff4444";
+                } else {
+                    document.getElementById('timer-label').innerText = "";
+                }
+            } catch(e){}
+        });
+
+        function renderSidebar() {
+            const container = document.getElementById('files-container');
+            container.innerHTML = "";
+            Object.keys(virtualFiles).forEach(filename => {
+                const item = document.createElement('div');
+                item.className = `file-item ${filename === activeFile ? 'active' : ''}`;
+                item.innerHTML = `📄 ${filename}`;
+                item.onclick = () => switchToFile(filename);
+                container.appendChild(item);
+            });
+        }
+
+        function switchToFile(filename) {
+            virtualFiles[activeFile] = editor.getValue();
+            activeFile = filename;
+            editor.setValue(virtualFiles[filename], -1);
+            renderSidebar();
+        }
+
+        function createNewFile() {
+            const name = prompt("Enter Python file name (e.g. module.py):");
+            if (!name) return;
+            const validName = name.endsWith('.py') ? name : name + '.py';
+            if (virtualFiles[validName]) return alert("File already exists!");
+            virtualFiles[validName] = `# New Module ${validName}\n`;
+            switchToFile(validName);
+        }
+
+        function switchTerminalTab(tab) {
+            const termView = document.getElementById('terminal-output-view');
+            const pipView = document.getElementById('terminal-pip-view');
+            const termBtn = document.getElementById('tab-terminal-btn');
+            const pipBtn = document.getElementById('tab-pip-btn');
+            
+            if (tab === 'output') {
+                termView.style.display = 'block'; pipView.style.display = 'none';
+                termBtn.classList.add('active'); pipBtn.classList.remove('active');
+            } else {
+                termView.style.display = 'none'; pipView.style.display = 'flex';
+                termBtn.classList.remove('active'); pipBtn.classList.add('active');
             }
         }
 
-        function toggleSorting() {
-            const row = document.getElementById('row1');
-            if(!window.sortable) { window.sortable = Sortable.create(row); }
-            else { window.sortable.destroy(); window.sortable = null; }
+        function insertSymbol(symbol) { editor.insert(symbol); editor.focus(); }
+        function changeTheme() { editor.setTheme(document.getElementById('themeSelect').value); }
+        function adjustFontSize(delta) { currentFontSize += delta; editor.setFontSize(currentFontSize + "px"); }
+        function downloadCode() {
+            const blob = new Blob([editor.getValue()], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = activeFile; link.click();
         }
+
+        function insertSnippet(type) {
+            let chunk = type === 'for' ? "for i in range(5):\n    print(i)\n" : "def function_name():\n    pass\n";
+            editor.insert(chunk); editor.focus();
+        }
+
+        function toggleShortcutBar() {
+            const bar = document.getElementById('keyboard-bar');
+            bar.classList.toggle('hidden');
+        }
+
+        function toggleTerminalSize() {
+            document.getElementById('terminal').classList.toggle('expanded');
+        }
+
+        let isCtrlActive = false;
+        function toggleCtrlKey() {
+            isCtrlActive = !isCtrlActive;
+            document.getElementById('ctrl-btn').classList.toggle('ctrl-active', isCtrlActive);
+            editor.focus();
+        }
+
+        editor.textInput.onKeyDown = function(e) {
+            if (isCtrlActive) {
+                const key = e.key.toLowerCase();
+                let triggered = true;
+                if (key === 'a') editor.selectAll();
+                else if (key === 'z') editor.undo();
+                else if (key === 'f') editor.execCommand('find');
+                else triggered = false;
+
+                if(triggered) {
+                    e.preventDefault(); e.stopPropagation();
+                    toggleCtrlKey(); return false;
+                }
+            }
+        };
+
+        let pyodideObj = null;
+        const consoleOut = document.getElementById("output");
+
+        async function initCompiler() {
+            try {
+                pyodideObj = await loadPyodide();
+                consoleOut.innerText = "🐍 Python 3.11 Runtime Core Engine Ready.";
+                consoleOut.style.color = "var(--text-gray)";
+            } catch(e) { consoleOut.innerText = "❌ Compiler Initialization Error."; }
+        }
+        initCompiler();
+
+        async function runPipInstall() {
+            if(!pyodideObj) return;
+            const pkgName = document.getElementById('pip-pkg-name').value.trim();
+            if(!pkgName) return;
+            const statusBox = document.getElementById('pip-status');
+            statusBox.innerText = `🔄 Gathering environmental links & installing [${pkgName}] via micropip...`;
+            
+            try {
+                await pyodideObj.loadPackage("micropip");
+                const micropip = pyodideObj.pyimport("micropip");
+                await micropip.install(pkgName);
+                statusBox.innerText = `✅ Package [${pkgName}] successfully loaded into Pyodide scope!`;
+            } catch(err) {
+                statusBox.innerText = `🛑 PIP Exception: Could not resolve package dependencies.\nError: ${err}`;
+            }
+        }
+
+        async function executePython() {
+            if (!pyodideObj) return;
+            const rawCode = editor.getValue();
+            consoleOut.innerText = "⚡ Running Python Script...\n";
+            consoleOut.style.color = "#00ffcc";
+            switchTerminalTab('output');
+            
+            document.getElementById('terminal').classList.add('expanded');
+            const startTime = performance.now();
+
+            pyodideObj.runPython(`import sys, io\nsys.stdout = io.StringIO()\nsys.stderr = io.StringIO()`);
+            try {
+                await pyodideObj.runPythonAsync(rawCode);
+                const stdout = pyodideObj.runPython("sys.stdout.getvalue()");
+                const stderr = pyodideObj.runPython("sys.stderr.getvalue()");
+                const totalDuration = (performance.now() - startTime).toFixed(1);
+                document.getElementById('timer-label').innerText = `(${totalDuration}ms)`;
+                document.getElementById('timer-label').style.color = "var(--accent-neon)";
+                consoleOut.innerText = (stdout + stderr) || "💡 Process executed successfully with clear stdout buffer.";
+            } catch (err) {
+                document.getElementById('timer-label').innerText = "(Error)";
+                consoleOut.style.color = "#ff4444";
+                consoleOut.innerText = "🛑 Runtime Exception:\n" + err;
+            }
+        }
+
+        // Initialize Workspace File Structure UI View
+        editor.setValue(virtualFiles[activeFile], -1);
+        renderSidebar();
     </script>
 </body>
 </html>
