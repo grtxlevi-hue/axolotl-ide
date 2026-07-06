@@ -37,13 +37,32 @@
         /* Workspace with Explorer Sidebar */
         .workspace { display: flex; flex-grow: 1; width: 100%; height: 100%; position: relative; overflow: hidden; }
         
-        .sidebar { width: var(--sidebar-width); background: #0b0f19; border-right: 1px solid #1f2937; display: flex; flex-direction: column; padding: 8px; box-sizing: border-box; font-size: 12px; }
+        /* 📂 Sidebar Animation & Properties */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: #0b0f19; 
+            border-right: 1px solid #1f2937; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 8px; 
+            box-sizing: border-box; 
+            font-size: 12px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+            transform: translateX(0);
+        }
+        .sidebar.closed {
+            transform: translateX(-100%);
+            width: 0px;
+            padding: 0px;
+            border-right: none;
+        }
+        
         .sidebar-header { font-weight: bold; color: var(--text-gray); margin-bottom: 8px; font-size: 11px; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
         .file-list { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
         .file-item { padding: 4px 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; color: #cbd5e1; word-break: break-all; }
         .file-item:hover, .file-item.active { background: #1e293b; color: var(--accent-neon); }
         
-        .editor-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100%; width: calc(100% - var(--sidebar-width)); }
+        .editor-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100%; transition: width 0.3s ease; }
         #editor { flex-grow: 1; width: 100%; background: #090d16 !important; font-size: 16px; }
         
         /* High Capacity Scrollable Terminal Panel */
@@ -84,6 +103,8 @@
         <div class="nav-top">
             <div class="title">🐍 <span>Python Workspace</span> <span id="user-scope" style="font-size:10px; color:var(--text-gray);">[Private Cloud Mode]</span></div>
             <div class="nav-actions">
+                <!-- Toggle Sidebar Trigger from Navbar -->
+                <button class="nav-btn" style="border-color: var(--accent-neon);" onclick="toggleSidebar()">📁 Explorer</button>
                 <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()">👁️ Bar On</button>
                 <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
             </div>
@@ -105,10 +126,14 @@
 
     <div class="workspace">
         <!-- 📂 VS-Code Style File Explorer Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar-panel">
             <div class="sidebar-header">
                 <span>FILES</span>
-                <button onclick="createNewFile()" style="background:none; border:none; color:var(--accent-neon); cursor:pointer; font-weight:bold;">+ New</button>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button onclick="createNewFile()" style="background:none; border:none; color:var(--accent-neon); cursor:pointer; font-weight:bold; font-size:12px;">+ New</button>
+                    <!-- Close button directly inside sidebar head -->
+                    <button onclick="toggleSidebar()" style="background:none; border:none; color:var(--text-gray); cursor:pointer; font-weight:bold; font-size:11px;">◀</button>
+                </div>
             </div>
             <div class="file-list" id="files-container">
                 <!-- Loaded dynamically -->
@@ -182,11 +207,9 @@
         const tg = Telegram.WebApp;
         tg.ready(); tg.expand();
 
-        // Safe Private user isolation mapping logic via Telegram InitData
         let userId = (tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : "local_sandbox_user";
         document.getElementById('user-scope').innerText = `[User Context: ${userId}]`;
 
-        // Local Multi-file Database System structure simulation
         let virtualFiles = JSON.parse(localStorage.getItem(`ide_files_${userId}`)) || {
             "main.py": "# Fresh Workspace Started\nprint('Hello World!')\n"
         };
@@ -199,12 +222,10 @@
         editor.setShowPrintMargin(false);
         editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: currentFontSize + "px", wrap: false });
 
-        // Sync contents on input change
         editor.on("input", () => {
             virtualFiles[activeFile] = editor.getValue();
             localStorage.setItem(`ide_files_${userId}`, JSON.stringify(virtualFiles));
             
-            // 🔍 Micro Syntax-Linter check logic
             try {
                 const annotations = editor.session.getAnnotations();
                 if (annotations.some(a => a.type === "error")) {
@@ -215,6 +236,13 @@
                 }
             } catch(e){}
         });
+
+        // 📂 Sidebar Open/Close Feature Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar-panel');
+            sidebar.classList.toggle('closed');
+            setTimeout(() => { editor.resize(); }, 310); // Adjusts editor layout layout smoothly after transition
+        }
 
         function renderSidebar() {
             const container = document.getElementById('files-container');
@@ -360,7 +388,6 @@
             }
         }
 
-        // Initialize Workspace File Structure UI View
         editor.setValue(virtualFiles[activeFile], -1);
         renderSidebar();
     </script>
