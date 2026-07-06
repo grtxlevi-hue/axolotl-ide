@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Python Premium Cyberpunk IDE</title>
+    <title>Python Professional Cyberpunk IDE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
+    <!-- Ace Themes Loaders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-dracula.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-twilight.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-tomorrow_night.js"></script>
+
     <style>
         :root {
             --bg-dark: #0b0f19;
@@ -18,158 +24,100 @@
             --text-gray: #9ca3af;
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background-color: var(--bg-dark); color: #e5e7eb; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Premium Cyberpunk Header */
-        .navbar { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 10px 15px; border-bottom: 2px solid #1f2937; height: 50px; box-sizing: border-box; }
+        /* Navbar Layout */
+        .navbar { display: flex; flex-direction: column; background: var(--panel-bg); border-bottom: 2px solid #1f2937; padding: 6px 12px; gap: 6px; box-sizing: border-box; }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .title { font-weight: bold; font-size: 14px; color: var(--accent-neon); font-family: monospace; display: flex; align-items: center; gap: 6px; }
-        .nav-actions { display: flex; gap: 8px; align-items: center; }
+        .nav-actions { display: flex; gap: 6px; align-items: center; }
         
-        .nav-btn { background: #1f2937; color: #fff; border: 1px solid #374151; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        /* Sub Controls Row */
+        .nav-controls { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
+        .nav-controls::-webkit-scrollbar { display: none; }
+        
+        .nav-btn { background: #1f2937; color: #fff; border: 1px solid #374151; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: all 0.2s; }
         .nav-btn:active { background: #374151; }
-        .run-btn { background: var(--accent-green); color: #fff; font-weight: bold; border: none; padding: 6px 14px; box-shadow: 0 0 10px rgba(46,204,113,0.3); }
+        .run-btn { background: var(--accent-green); color: #fff; font-weight: bold; border: none; padding: 6px 14px; box-shadow: 0 0 10px rgba(46,204,113,0.3); font-size: 13px; }
         .run-btn:active { background: #27ae60; }
         
-        .main-container { display: flex; flex-direction: column; flex-grow: 1; height: calc(100% - 50px); position: relative; background: var(--bg-dark); }
+        select.nav-btn { background-color: #1f2937; color: #fff; outline: none; padding-right: 20px; }
+
+        .main-container { display: flex; flex-direction: column; flex-grow: 1; height: 100%; position: relative; background: var(--bg-dark); }
         #editor { flex-grow: 1; width: 100%; background: #0f1423 !important; font-size: 16px; }
         
-        /* 🚀 High capacity Scrollable Terminal panel */
-        .terminal-panel { 
-            height: 28%; 
-            background: #05070c; 
-            border-top: 2px solid #1f2937; 
-            display: flex; 
-            flex-direction: column; 
-            box-sizing: border-box;
-            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
+        /* High Capacity Scrollable Terminal Panel */
+        .terminal-panel { height: 28%; background: #05070c; border-top: 2px solid #1f2937; display: flex; flex-direction: column; box-sizing: border-box; transition: height 0.3s ease; position: relative; }
         .terminal-panel.expanded { height: 75% !important; }
-        .terminal-header { 
-            background: #0d1321; 
-            padding: 8px 15px; 
-            font-size: 11px; 
-            font-weight: bold; 
-            color: var(--text-gray); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            border-bottom: 1px solid #1f2937;
-            letter-spacing: 1px;
-        }
+        .terminal-header { background: #0d1321; padding: 8px 15px; font-size: 11px; font-weight: bold; color: var(--text-gray); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937; letter-spacing: 1px; }
         .expand-btn { background: none; border: none; color: var(--accent-neon); font-weight: bold; cursor: pointer; font-size: 11px; }
         
-        /* Fixed scroll container for large outputs */
-        .output-container { 
-            flex-grow: 1; 
-            overflow: auto; /* Enables both vertical and horizontal scroll */
-            padding: 12px; 
-            margin: 0; 
-            box-sizing: border-box; 
-            display: block;
-            -webkit-overflow-scrolling: touch;
-        }
-        #output { 
-            margin: 0; 
-            font-family: 'Courier New', Courier, monospace; 
-            font-size: 14px; 
-            color: #51ff85; 
-            white-space: pre; /* Keeps code structure and newlines intact */
-            overflow: visible; /* Allows container to manage scrollbars */
-            line-height: 1.5; 
-        }
+        .output-container { flex-grow: 1; overflow: auto; padding: 12px; margin: 0; box-sizing: border-box; display: block; -webkit-overflow-scrolling: touch; }
+        #output { margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #51ff85; white-space: pre; overflow: visible; line-height: 1.5; }
         
-        /* 🛠️ Modern Keyboard Overlay Toolbar */
-        .shortcut-bar { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            background: #0d111a; 
-            border-top: 1px solid #242b35; 
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 4px 2px;
-            box-sizing: border-box;
-            z-index: 9999;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-        }
-        .shortcut-bar.hidden {
-            transform: translateY(100%);
-            opacity: 0;
-            pointer-events: none;
-        }
+        /* Modern Smart Keyboard Toolbar */
+        .shortcut-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d111a; border-top: 1px solid #242b35; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; box-sizing: border-box; z-index: 9999; transition: transform 0.2s ease, opacity 0.2s ease; }
+        .shortcut-bar.hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
         .shortcut-row { display: flex; overflow-x: auto; gap: 4px; padding: 2px 4px; -webkit-overflow-scrolling: touch; }
         .shortcut-row::-webkit-scrollbar { display: none; }
         
-        .shortcut-btn { 
-            background: #161c26; 
-            color: #ffffff; 
-            border: 1px solid #242b35;
-            border-radius: 6px; 
-            min-width: 44px; 
-            height: 36px; 
-            font-family: monospace; 
-            font-size: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            user-select: none; 
-            -webkit-user-select: none;
-            transition: background 0.1s;
-        }
+        .shortcut-btn { background: #161c26; color: #ffffff; border: 1px solid #242b35; border-radius: 6px; min-width: 44px; height: 36px; font-family: monospace; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; -webkit-user-select: none; }
         .shortcut-btn:active { background: #2a3447; }
         .special-btn { font-size: 11px; color: #9ca3af; font-weight: bold; background: #111622; }
-        
-        /* CTRL Active State */
-        .shortcut-btn.ctrl-active {
-            background: var(--accent-neon) !important;
-            color: #000 !important;
-            box-shadow: 0 0 10px rgba(0,255,204,0.5);
-            font-weight: bold;
-        }
+        .shortcut-btn.ctrl-active { background: var(--accent-neon) !important; color: #000 !important; box-shadow: 0 0 10px rgba(0,255,204,0.5); font-weight: bold; }
         
         .shortcut-row.sorting-active { border: 1px dashed var(--accent-neon); background: rgba(0,255,204,0.03); }
-        .padding-bottom-fix { height: 90px; background: transparent; transition: height 0.2s; }
+        .padding-bottom-fix { height: 90px; background: transparent; }
         .padding-bottom-fix.shorten { height: 0px; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="title">🐍 <span>main.py</span></div>
-        <div class="nav-actions">
-            <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()">👁️ Bar On</button>
+        <div class="nav-top">
+            <div class="title">🐍 <span>main.py</span></div>
+            <div class="nav-actions">
+                <button class="nav-btn" id="toggleBarBtn" onclick="toggleShortcutBar()">👁️ Bar On</button>
+                <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
+            </div>
+        </div>
+        <!-- Extra Control Features Panel -->
+        <div class="nav-controls">
+            <select class="nav-btn" id="themeSelect" onchange="changeTheme()">
+                <option value="ace/theme/monokai">Monokai</option>
+                <option value="ace/theme/dracula">Dracula</option>
+                <option value="ace/theme/twilight">Twilight</option>
+                <option value="ace/theme/tomorrow_night">One Dark</option>
+            </select>
+            <button class="nav-btn" onclick="adjustFontSize(1)">➕ Font</button>
+            <button class="nav-btn" onclick="adjustFontSize(-1)">➖ Font</button>
+            <button class="nav-btn" onclick="downloadCode()">💾 Save File</button>
             <button class="nav-btn" id="sortToggle" onclick="toggleSorting()">⚙️ Sort</button>
-            <button class="nav-btn run-btn" onclick="executePython()">▶ RUN</button>
+            <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('for')">⚡ Loop</button>
+            <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('def')">⚡ Func</button>
+            <button class="nav-btn" style="color:#ffcc00" onclick="insertSnippet('list')">⚡ List</button>
         </div>
     </div>
 
     <div class="main-container">
-        <div id="editor"># Python 3 Environment
-rows = 15
-for i in range(1, rows + 1):
-    print(' ' * (rows - i) + '*' * (2 * i - 1))
-</div>
+        <!-- 🧼 Empty default state for instant fresh startup -->
+        <div id="editor"></div>
         <div class="padding-bottom-fix" id="bottom-pad"></div>
     </div>
 
-    <!-- Scroll-enabled Terminal Console -->
+    <!-- Scrollable Terminal Box with Exec Benchmarks -->
     <div class="terminal-panel" id="terminal">
         <div class="terminal-header">
-            <span>⚡ PYTHON CONSOLE</span>
+            <span>⚡ PYTHON CONSOLE <span id="timer-label" style="color:var(--accent-neon); margin-left:10px;"></span></span>
             <button class="expand-btn" id="sizeBtn" onclick="toggleTerminalSize()">▲ EXPAND</button>
         </div>
         <div class="output-container">
-            <pre id="output">⏳ Loading Python Environment...</pre>
+            <pre id="output">⏳ Python 3.11 Runtime Core Engine Booting...</pre>
         </div>
     </div>
 
-    <!-- Hardware Emulation Smart Toolbar -->
+    <!-- Smart Virtual Keyboard Panel Layout -->
     <div class="shortcut-bar" id="keyboard-bar">
-        <!-- Row 1 Commands -->
         <div class="shortcut-row" id="row1">
             <div class="shortcut-btn special-btn" id="ctrl-btn" data-id="ctrl" onclick="toggleCtrlKey()">CTRL</div>
             <div class="shortcut-btn special-btn" data-id="tab" onclick="insertSymbol('    ')">➔|</div>
@@ -180,7 +128,6 @@ for i in range(1, rows + 1):
             <div class="shortcut-btn special-btn" data-id="selectall" onclick="editor.selectAll(); editor.focus();">⌘A</div>
             <div class="shortcut-btn special-btn" data-id="esc">ESC</div>
         </div>
-        <!-- Row 2 Coding Symbols -->
         <div class="shortcut-row" id="row2">
             <div class="shortcut-btn" data-id="semi" onclick="insertSymbol(';')">;</div>
             <div class="shortcut-btn" data-id="squote" onclick="insertSymbol('\'')">'</div>
@@ -204,13 +151,52 @@ for i in range(1, rows + 1):
         const tg = Telegram.WebApp;
         tg.ready(); tg.expand(); 
 
+        let currentFontSize = 16;
         const editor = ace.edit("editor");
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/python");
         editor.setShowPrintMargin(false);
-        editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: "16px", wrap: false });
+        editor.setOptions({ useSoftTabs: true, tabSize: 4, fontSize: currentFontSize + "px", wrap: false });
 
         function insertSymbol(symbol) { editor.insert(symbol); editor.focus(); }
+
+        // 🎨 Change Themes Dynamic Selector
+        function changeTheme() {
+            const chosen = document.getElementById('themeSelect').value;
+            editor.setTheme(chosen);
+        }
+
+        // 🔤 Font Sizing Logic
+        function adjustFontSize(delta) {
+            currentFontSize += delta;
+            if(currentFontSize < 10) currentFontSize = 10;
+            if(currentFontSize > 30) currentFontSize = 30;
+            editor.setFontSize(currentFontSize + "px");
+        }
+
+        // 📥 Download Script file locally (.py)
+        function downloadCode() {
+            const userScript = editor.getValue();
+            const blob = new Blob([userScript], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "main.py";
+            link.click();
+        }
+
+        // ⚡ Built-in Code Snippets Insertions
+        function insertSnippet(type) {
+            let chunk = "";
+            if(type === 'for') {
+                chunk = "for i in range(5):\n    print(i)\n";
+            } else if(type === 'def') {
+                chunk = "def my_function():\n    return \"Success\"\n";
+            } else if(type === 'list') {
+                chunk = "my_list = [x for x in range(10)]\n";
+            }
+            editor.insert(chunk);
+            editor.focus();
+        }
 
         function toggleShortcutBar() {
             const bar = document.getElementById('keyboard-bar');
@@ -219,14 +205,12 @@ for i in range(1, rows + 1):
             
             if(bar.classList.contains('hidden')) {
                 bar.classList.remove('hidden');
-                pad.classList.remove('shorten');
+                pad.style.display = "block";
                 btn.innerText = "👁️ Bar On";
-                btn.style.borderColor = "var(--accent-neon)";
             } else {
                 bar.classList.add('hidden');
-                pad.classList.add('shorten');
+                pad.style.display = "none";
                 btn.innerText = "👁️ Bar Off";
-                btn.style.borderColor = "#374151";
             }
         }
 
@@ -258,7 +242,6 @@ for i in range(1, rows + 1):
             if (isCtrlActive) {
                 const key = e.key.toLowerCase();
                 let triggered = true;
-                
                 if (key === 'a') editor.selectAll();
                 else if (key === 'c') document.execCommand('copy');
                 else if (key === 'v') document.execCommand('paste');
@@ -268,37 +251,25 @@ for i in range(1, rows + 1):
                 else triggered = false;
 
                 if(triggered) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleCtrlKey();
-                    return false;
+                    e.preventDefault(); e.stopPropagation();
+                    toggleCtrlKey(); return false;
                 }
             }
         };
 
         let sortable1, sortable2;
         let isSortingActive = false;
-
         function toggleSorting() {
-            const r1 = document.getElementById('row1');
-            const r2 = document.getElementById('row2');
-            const sBtn = document.getElementById('sortToggle');
-            isSortingActive = !isSortingActive;
-            
+            const r1 = document.getElementById('row1'); const r2 = document.getElementById('row2');
+            const sBtn = document.getElementById('sortToggle'); isSortingActive = !isSortingActive;
             if(isSortingActive) {
-                sBtn.innerText = "💾 Save";
-                sBtn.style.background = "var(--accent-green)";
-                r1.classList.add('sorting-active');
-                r2.classList.add('sorting-active');
-                sortable1 = Sortable.create(r1, { animation: 150 });
-                sortable2 = Sortable.create(r2, { animation: 150 });
+                sBtn.innerText = "💾 Save"; sBtn.style.background = "var(--accent-green)";
+                r1.classList.add('sorting-active'); r2.classList.add('sorting-active');
+                sortable1 = Sortable.create(r1, { animation: 150 }); sortable2 = Sortable.create(r2, { animation: 150 });
             } else {
-                sBtn.innerText = "⚙️ Sort";
-                sBtn.style.background = "#1f2937";
-                r1.classList.remove('sorting-active');
-                r2.classList.remove('sorting-active');
-                if(sortable1) sortable1.destroy();
-                if(sortable2) sortable2.destroy();
+                sBtn.innerText = "⚙️ Sort"; sBtn.style.background = "#1f2937";
+                r1.classList.remove('sorting-active'); r2.classList.remove('sorting-active');
+                if(sortable1) sortable1.destroy(); if(sortable2) sortable2.destroy();
                 localStorage.setItem('row1-order', JSON.stringify(Array.from(r1.children).map(c => c.getAttribute('data-id'))));
                 localStorage.setItem('row2-order', JSON.stringify(Array.from(r2.children).map(c => c.getAttribute('data-id'))));
             }
@@ -308,16 +279,11 @@ for i in range(1, rows + 1):
             const loadOrder = (rowId, storageKey) => {
                 const order = JSON.parse(localStorage.getItem(storageKey));
                 if(order) {
-                    const row = document.getElementById(rowId);
-                    const currentButtons = Array.from(row.children);
-                    order.forEach(id => {
-                        const btn = currentButtons.find(b => b.getAttribute('data-id') === id);
-                        if(btn) row.appendChild(btn);
-                    });
+                    const row = document.getElementById(rowId); const currentButtons = Array.from(row.children);
+                    order.forEach(id => { const btn = currentButtons.find(b => b.getAttribute('data-id') === id); if(btn) row.appendChild(btn); });
                 }
             };
-            loadOrder('row1', 'row1-order');
-            loadOrder('row2', 'row2-order');
+            loadOrder('row1', 'row1-order'); loadOrder('row2', 'row2-order');
         });
 
         if (window.visualViewport) {
@@ -334,9 +300,9 @@ for i in range(1, rows + 1):
         async function initCompiler() {
             try {
                 pyodideObj = await loadPyodide();
-                consoleOut.innerText = "🐍 Python 3.11 Environment Ready.\nPress RUN to compile.";
+                consoleOut.innerText = "🐍 Python 3.11 Environment Ready.\nWrite your code and press RUN.";
                 consoleOut.style.color = "var(--text-gray)";
-            } catch(e) { consoleOut.innerText = "❌ Core Error."; }
+            } catch(e) { consoleOut.innerText = "❌ Core Error Booting Workspace Components."; }
         }
         initCompiler();
 
@@ -349,13 +315,22 @@ for i in range(1, rows + 1):
             document.getElementById('terminal').classList.add('expanded');
             document.getElementById('sizeBtn').innerText = "▼ SHRINK";
 
+            // Benchmark Timer Initiation
+            const startTime = performance.now();
+
             pyodideObj.runPython(`import sys, io\nsys.stdout = io.StringIO()\nsys.stderr = io.StringIO()`);
             try {
                 await pyodideObj.runPythonAsync(rawCode);
                 const stdout = pyodideObj.runPython("sys.stdout.getvalue()");
                 const stderr = pyodideObj.runPython("sys.stderr.getvalue()");
+                
+                const endTime = performance.now();
+                const totalDuration = (endTime - startTime).toFixed(1);
+                document.getElementById('timer-label').innerText = `(${totalDuration}ms)`;
+
                 consoleOut.innerText = (stdout + stderr) || "💡 Process executed successfully with clear stdout buffer.";
             } catch (err) {
+                document.getElementById('timer-label').innerText = "(Error)";
                 consoleOut.style.color = "#ff4444";
                 consoleOut.innerText = "🛑 Syntax/Runtime Exception:\n" + err;
             }
