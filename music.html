@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axolotl Spotify-X Pure 320kbps Streamer</title>
+    <title>Axolotl Spotify-X Premium Core</title>
     
     <style>
         :root {
             --bg-deep: #05070a;
             --panel-glass: rgba(10, 18, 30, 0.85);
-            --accent-glow: #ff0000; /* YouTube Red Premium Glow */
+            --accent-glow: #ff0000; 
             --accent-glow-cyan: #00ffcc;
             --accent-purple: #bd00ff;
             --accent-pink: #ff007f;
@@ -27,7 +27,6 @@
 
         .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; }
 
-        /* Premium Header Zone */
         .app-header {
             display: flex; flex-direction: column; gap: 12px;
             padding: 16px 20px; background: rgba(5, 7, 10, 0.7); backdrop-filter: blur(25px);
@@ -46,7 +45,6 @@
         .search-input:focus { border-color: var(--accent-glow); box-shadow: var(--glow-shadow); background: rgba(255,255,255,0.12); }
         .search-icon-inside { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent-glow); font-size: 16px; }
 
-        /* Scroll Feed Content Container */
         .view-content {
             flex-grow: 1; overflow-y: auto; padding: 16px 20px 130px 20px;
             display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch;
@@ -55,7 +53,6 @@
         .app-view { display: none; flex-direction: column; gap: 20px; }
         .app-view.active { display: flex; }
 
-        /* Recommendation Carousel */
         .recommend-slider { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
         .recommend-slider::-webkit-scrollbar { display: none; }
         .recommend-card {
@@ -65,7 +62,6 @@
         }
         .recommend-card:hover { border-color: var(--accent-glow); transform: translateY(-3px); }
 
-        /* Tracks Output Strip UI */
         .results-container { display: flex; flex-direction: column; gap: 10px; }
         .track-strip {
             display: flex; align-items: center; justify-content: space-between;
@@ -81,7 +77,6 @@
         .strip-play-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; flex-shrink: 0; }
         .track-strip.active .strip-play-btn { background: var(--accent-glow); color: #fff; font-weight: bold; box-shadow: var(--glow-shadow); }
 
-        /* Now Playing Dashboard */
         .player-view-wrapper { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; width: 100%; }
         .immersive-art-frame {
             width: 68%; aspect-ratio: 1; border-radius: 32px; background: #152232; background-size: cover; background-position: center;
@@ -102,34 +97,6 @@
         .ctrl-btn { background: rgba(255,255,255,0.06); color: #fff; border: none; padding: 14px 20px; font-size: 16px; border-radius: 50%; cursor: pointer; }
         .ctrl-btn.main-play { background: var(--accent-glow); color: #fff; padding: 18px 24px; font-size: 22px; box-shadow: var(--glow-shadow); font-weight: bold; }
 
-        /* Room Presence Frame UI */
-        .room-presence-panel {
-            width: 100%; background: var(--panel-glass); border: 1px solid rgba(255, 0, 0, 0.15);
-            border-radius: 22px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;
-            box-shadow: var(--glow-shadow);
-        }
-        .room-meta-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .room-id-badge { font-family: monospace; font-size: 14px; color: var(--accent-glow); font-weight: bold; letter-spacing: 1px; }
-        .room-input-sync { width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; text-align: center; }
-        .room-grid-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .room-action-btn { padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; color: white; text-align: center; }
-        .room-action-btn.host { background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink)); }
-        .room-action-btn.join { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); }
-
-        /* Navigation Menu Dock */
-        .floating-navbar {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 88%; max-width: 400px; height: 64px; border-radius: 22px;
-            background: rgba(10, 15, 26, 0.85); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 35px rgba(0,0,0,0.6);
-            display: flex; justify-content: space-around; align-items: center; z-index: 99999; padding: 0 8px; box-sizing: border-box;
-        }
-        .nav-tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; min-width: 50px; }
-        .nav-tab-item.active { color: var(--accent-glow); }
-        .nav-tab-icon { font-size: 20px; }
-        .nav-tab-label { font-size: 9px; font-weight: 700; text-transform: uppercase; }
-
-        /* Floating Active Pill Overlay */
         .bottom-audio-pill {
             position: fixed; bottom: 94px; left: 50%; transform: translateX(-50%);
             width: 88%; max-width: 400px; height: 56px; border-radius: 16px;
@@ -145,32 +112,45 @@
         .pill-desc { font-size: 10px; color: var(--accent-glow); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pill-btn-play { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-glow); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; border: none; cursor: pointer; font-weight: bold; }
 
+        .floating-navbar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 88%; max-width: 400px; height: 64px; border-radius: 22px;
+            background: rgba(10, 15, 26, 0.85); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+            display: flex; justify-content: space-around; align-items: center; z-index: 99999; padding: 0 8px; box-sizing: border-box;
+        }
+        .nav-tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; min-width: 50px; }
+        .nav-tab-item.active { color: var(--accent-glow); }
+        .nav-tab-icon { font-size: 20px; }
+        .nav-tab-label { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+
         #toast-notification { position: fixed; top: 155px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: var(--accent-glow-cyan); padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; border: 1px solid var(--accent-glow-cyan); opacity: 0; transition: opacity 0.3s; z-index: 100000; pointer-events: none; text-align: center; }
     </style>
-    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
-    <div id="toast-notification">Loading YouTube Streaming Engine...</div>
+    <div id="toast-notification">Connecting Axolotl Cluster...</div>
 
-    <div id="yt-hidden-node" style="position: absolute; width: 0; height: 0; border: 0; pointer-events: none; visibility: hidden;"></div>
+    <!-- 🌐 Telegram-Safe Video Stream Core Container -->
+    <div style="position: absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;">
+        <video id="tgSecureAudioEngine" playsinline webkit-playsinline></video>
+    </div>
 
     <div class="app-container">
         <div class="app-header">
             <div class="header-top">
-                <div class="header-title">🪐 Axolotl <span>YT-Music Pro</span></div>
-                <div style="cursor:pointer;" onclick="showToast('🛰 YouTube Core Engine Active')">📡</div>
+                <div class="header-title">🪐 Axolotl <span>Premium Core</span></div>
+                <div style="cursor:pointer;" onclick="showToast('⚡ Telegram Engine Active')">📡</div>
             </div>
             <div class="search-wrapper">
                 <span class="search-icon-inside">🔍</span>
-                <input type="text" class="search-input" id="spotifySearchInput" placeholder="Search any YouTube Song / Remix..." onkeyup="handleSearchTrigger(event)">
+                <input type="text" class="search-input" id="spotifySearchInput" placeholder="Search any Song, Remix or Artist..." onkeyup="handleSearchTrigger(event)">
             </div>
         </div>
 
         <div class="view-content">
-            
             <div class="app-view active" id="view-home">
-                <div class="section-title" style="font-size:14px; font-weight:700;">🔥 Curated Recommendations For You</div>
+                <div class="section-title" style="font-size:14px; font-weight:700;">🔥 Hot Curated Recommendations</div>
                 <div class="recommend-slider" id="recommendationsOutput"></div>
 
                 <div class="section-title" id="search-title-context" style="font-size:14px; font-weight:700; margin-top:10px;">Trending Worldwide Live Feed</div>
@@ -178,27 +158,8 @@
             </div>
 
             <div class="app-view" id="view-library">
-                <div class="section-title" style="font-size:14px; font-weight:700;">Your Uncapped Tracks Library</div>
+                <div class="section-title" style="font-size:14px; font-weight:700;">Your Playback Tracks History</div>
                 <div class="results-container" id="libraryTracksOutput"></div>
-            </div>
-
-            <div class="app-view" id="view-rooms">
-                <div class="section-title" style="font-size:14px; font-weight:700;">Music Together Lounge (Real-Time Sync)</div>
-                <div class="room-presence-panel">
-                    <div class="presence-title">Host Shared Listening Room</div>
-                    <div class="room-meta-row">
-                        <span style="font-size:12px; color:var(--text-muted);">Active Room ID:</span>
-                        <span class="room-id-badge" id="currentRoomIdDisplay">AXO-NOT-HOSTED</span>
-                    </div>
-                    <div class="room-grid-btns">
-                        <button class="room-action-btn host" onclick="createMusicTogetherRoom()">Create Room</button>
-                        <button class="room-action-btn join" id="shareRoomBtn" onclick="copyInviteShareLink()" disabled style="opacity:0.5;">Share Invite Link</button>
-                    </div>
-
-                    <div class="presence-title" style="margin-top:10px;">Join Friend's Live Synced Room</div>
-                    <input type="text" class="room-input-sync" id="friendRoomIdInput" placeholder="Paste Room ID here...">
-                    <button class="room-action-btn host" style="background:linear-gradient(90deg, #ff0000, #ff5555); color:#fff;" onclick="joinMusicTogetherRoom()">Connect & Sync Stream</button>
-                </div>
             </div>
 
             <div class="app-view" id="view-playing">
@@ -207,7 +168,7 @@
                     
                     <div class="player-meta-info">
                         <div class="player-track-name" id="player-title">No Track Active</div>
-                        <div class="player-artist-name" id="player-artist">Search or select recommendation to stream</div>
+                        <div class="player-artist-name" id="player-artist">Search any track to play in Telegram</div>
                     </div>
 
                     <div class="canvas-box">
@@ -229,7 +190,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <div class="bottom-audio-pill" id="audio-pill-bar" onclick="switchView('playing')">
@@ -250,9 +210,6 @@
             <div class="nav-tab-item" id="tab-library" onclick="switchView('library')">
                 <div class="nav-tab-icon">📚</div><div class="nav-tab-label">Library</div>
             </div>
-            <div class="nav-tab-item" id="tab-rooms" onclick="switchView('rooms')">
-                <div class="nav-tab-icon">🔮</div><div class="nav-tab-label">Rooms</div>
-            </div>
             <div class="nav-tab-item" id="tab-playing" onclick="switchView('playing')">
                 <div class="nav-tab-icon">🎵</div><div class="nav-tab-label">Playing</div>
             </div>
@@ -262,40 +219,22 @@
     <script>
         let currentTracksList = [];
         let currentTrackIndex = 0;
-        let ytPlayerNode = null; // New Official IFrame instance
+        let nativePlayer = document.getElementById('tgSecureAudioEngine');
         let uiProgressTimer = null;
         let animationFrameId = null;
-        let systemRoomId = null;
-        let isJoinedInRoom = false;
-        let syncIntervalWorker = null;
 
         const curatedRecommendations = [
-            { title: "Dekhte Dekhte", artist: "Batti Gul Meter Chalu", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400", url: "w4ClQO58-R4" },
+            { title: "Dekhte Dekhte", artist: "Atif Aslam", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400", url: "w4ClQO58-R4" },
             { title: "Softly", artist: "Karan Aujla", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400", url: "c9Rr6mIDvX4" },
             { title: "Kesariya", artist: "Arijit Singh", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400", url: "BddP6PYo2gs" },
             { title: "Starboy", artist: "The Weeknd", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400", url: "jzD_yyEw0M4" }
         ];
 
-        // 🎥 INITIALIZE OFFICIAL IMMUTABLE YOUTUBE BACKEND NODE
-        function onYouTubeIframeAPIReady() {
-            ytPlayerNode = new YT.Player('yt-hidden-node', {
-                height: '0',
-                width: '0',
-                videoId: curatedRecommendations[0].url,
-                playerVars: { 'roles': 'none', 'controls': 0, 'disablekb': 1 },
-                events: {
-                    'onReady': () => { showToast("📡 YT Streaming Engine Connected!"); },
-                    'onStateChange': handleYTPlayerStateEvent
-                }
-            });
-        }
-
-        // 🚀 HIGHLY STABLE LIGHTWEIGHT SCRAPER FOR YOUTUBE METADATA
+        // 🚀 TG App Bypass Stream Pipeline Engine 
         async function runCloudMusicSearch(query) {
             if (!query.trim()) return;
-            showToast("🔍 Querying Global Core Cluster...");
+            showToast("🔍 Fetching Secure Clusters...");
 
-            // Multiple alternative stable backup networks for fetching search JSON without locks
             const instances = [
                 "https://iv.melmac.space",
                 "https://invidious.perennialte.ch",
@@ -304,7 +243,6 @@
             ];
             
             let success = false;
-
             for(let base of instances) {
                 try {
                     const controller = new AbortController();
@@ -319,23 +257,22 @@
                                 title: item.title,
                                 artist: item.author || "YouTube Artist",
                                 image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-                                url: item.videoId // Storing Raw Video IDs for flawless native playback
+                                url: item.videoId,
+                                streamUrl: `${base}/latest_version?id=${item.videoId}&v=mp4` // Telegram Secure Raw Pipeline
                             }));
                             success = true;
                             break;
                         }
                     }
-                } catch(e) {
-                    console.log("Switching search pipelines...");
-                }
+                } catch(e) {}
             }
 
             if (success && currentTracksList.length > 0) {
-                document.getElementById('search-title-context').innerText = `YouTube Core Results for "${query}"`;
+                document.getElementById('search-title-context').innerText = `Results for "${query}"`;
                 renderTracksDOM(currentTracksList, 'songsResultsOutput');
-                showToast("✨ Results Synchronized!");
+                showToast("✨ Stream Packets Ready!");
             } else {
-                showToast("⚠️ API Core Busy. Retrying structural layout...");
+                showToast("⚠️ All proxy clusters full. Try again!");
             }
         }
 
@@ -374,7 +311,11 @@
             curatedRecommendations.forEach((track, idx) => {
                 const card = document.createElement('div');
                 card.className = 'recommend-card';
-                card.onclick = () => launchAudioStream(idx, curatedRecommendations);
+                card.onclick = () => {
+                    // Inject standard stream for curated list
+                    track.streamUrl = `https://iv.melmac.space/latest_version?id=${track.url}&v=mp4`;
+                    launchAudioStream(idx, curatedRecommendations);
+                };
                 card.innerHTML = `
                     <div style="width:100%; aspect-ratio:1; border-radius:12px; background-image: url('${track.image}'); background-size:cover; background-position:center;"></div>
                     <div style="font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${track.title}</div>
@@ -388,54 +329,55 @@
             currentTracksList = tracksContext;
             currentTrackIndex = index;
             const track = currentTracksList[index];
+            showToast("⏳ Bypassing Telegram Sandbox...");
 
-            showToast("⏳ Buffering Native Audio Node...");
-            if (ytPlayerNode && ytPlayerNode.loadVideoById) {
-                ytPlayerNode.loadVideoById(track.url);
-                ytPlayerNode.playVideo();
-                updateUIElements(track);
-                switchView('playing');
-            } else {
-                showToast("❌ System Engine Init Error. Reload Page.");
+            if(!track.streamUrl) {
+                track.streamUrl = `https://iv.melmac.space/latest_version?id=${track.url}&v=mp4`;
             }
+
+            nativePlayer.pause();
+            nativePlayer.src = track.streamUrl;
+            nativePlayer.setAttribute('id', 'tgSecureAudioEngine');
+            nativePlayer.load();
+            
+            nativePlayer.play().then(() => {
+                handlePlaybackStart(track);
+            }).catch((err) => {
+                // Failover link reconstruction
+                nativePlayer.src = `https://invidious.perennialte.ch/latest_version?id=${track.url}&v=mp4`;
+                nativePlayer.play().then(() => handlePlaybackStart(track)).catch(()=>{
+                    showToast("❌ Telegram Sandbox Blocked Stream. Tap Play Again.");
+                });
+            });
         }
 
-        function togglePlayback() {
-            if (!ytPlayerNode) return;
-            const state = ytPlayerNode.getPlayerState();
-            if (state === YT.PlayerState.PLAYING) {
-                ytPlayerNode.pauseVideo();
-            } else {
-                ytPlayerNode.playVideo();
-            }
-        }
-
-        function handleYTPlayerStateEvent(event) {
-            if (event.data === YT.PlayerState.PLAYING) {
-                setPlayUI(true);
-                startWaveformVisualizer();
-                trackTimelineProgressLoop();
-                syncDataToVirtualRoomState();
-            } else {
-                setPlayUI(false);
-                clearInterval(uiProgressTimer);
-                if (event.data !== YT.PlayerState.BUFFERING) {
-                    cancelAnimationFrame(animationFrameId);
-                }
-                syncDataToVirtualRoomState();
-            }
-        }
-
-        function trackTimelineProgressLoop() {
+        function handlePlaybackStart(track) {
+            updateUIElements(track);
+            switchView('playing');
+            setPlayUI(true);
+            startWaveformVisualizer();
+            
             clearInterval(uiProgressTimer);
             uiProgressTimer = setInterval(() => {
-                if (!ytPlayerNode || !ytPlayerNode.getCurrentTime) return;
-                const cur = ytPlayerNode.getCurrentTime();
-                const dur = ytPlayerNode.getDuration() || 100;
+                const cur = nativePlayer.currentTime || 0;
+                const dur = nativePlayer.duration || 100;
                 document.getElementById('trackScrubber').value = (cur / dur) * 100;
                 document.getElementById('time-current').innerText = formatTime(cur);
                 document.getElementById('time-total').innerText = formatTime(dur);
-            }, 400);
+            }, 500);
+        }
+
+        function togglePlayback() {
+            if (nativePlayer.paused) {
+                nativePlayer.play().then(() => {
+                    setPlayUI(true);
+                    startWaveformVisualizer();
+                });
+            } else {
+                nativePlayer.pause();
+                setPlayUI(false);
+                cancelAnimationFrame(animationFrameId);
+            }
         }
 
         function adjustTrack(dir) {
@@ -465,63 +407,6 @@
             document.getElementById('pill-play-trigger').innerText = sym;
         }
 
-        function createMusicTogetherRoom() {
-            systemRoomId = "YT-" + Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('currentRoomIdDisplay').innerText = systemRoomId;
-            const shareBtn = document.getElementById('shareRoomBtn');
-            shareBtn.removeAttribute('disabled'); shareBtn.style.opacity = "1";
-            syncDataToVirtualRoomState();
-            showToast(`Room Created! ID: ${systemRoomId}`);
-        }
-
-        function copyInviteShareLink() {
-            if(!systemRoomId) return;
-            const inviteUrl = `${window.location.href.split('?')[0]}?joinRoom=${systemRoomId}`;
-            navigator.clipboard.writeText(inviteUrl).then(() => { showToast("📋 Invite Link Copied!"); });
-        }
-
-        function syncDataToVirtualRoomState() {
-            if (!systemRoomId || !ytPlayerNode || !ytPlayerNode.getCurrentTime) return;
-            localStorage.setItem(systemRoomId, JSON.stringify({
-                trackIndex: currentTrackIndex,
-                currentTime: ytPlayerNode.getCurrentTime(),
-                isPaused: ytPlayerNode.getPlayerState() !== YT.PlayerState.PLAYING,
-                trackObj: currentTracksList[currentTrackIndex]
-            }));
-        }
-
-        function joinMusicTogetherRoom() {
-            const inputId = document.getElementById('friendRoomIdInput').value.trim().toUpperCase();
-            if(!inputId) return alert("Enter Room ID!");
-
-            isJoinedInRoom = true;
-            showToast(`🔗 Syncing to YouTube Shared Room ${inputId}...`);
-
-            if(syncIntervalWorker) clearInterval(syncIntervalWorker);
-            syncIntervalWorker = setInterval(() => {
-                const freshRoomData = JSON.parse(localStorage.getItem(inputId));
-                if(!freshRoomData || !ytPlayerNode) return;
-
-                const currentVideoUrlId = currentTracksList[currentTrackIndex]?.url;
-                if(!currentVideoUrlId || currentVideoUrlId !== freshRoomData.trackObj.url) {
-                    currentTracksList = [freshRoomData.trackObj];
-                    currentTrackIndex = 0;
-                    ytPlayerNode.loadVideoById(freshRoomData.trackObj.url);
-                    updateUIElements(freshRoomData.trackObj);
-                }
-
-                if(Math.abs(ytPlayerNode.getCurrentTime() - freshRoomData.currentTime) > 2.0) {
-                    ytPlayerNode.seekTo(freshRoomData.currentTime, true);
-                }
-
-                if(freshRoomData.isPaused && ytPlayerNode.getPlayerState() === YT.PlayerState.PLAYING) {
-                    ytPlayerNode.pauseVideo();
-                } else if(!freshRoomData.isPaused && ytPlayerNode.getPlayerState() !== YT.PlayerState.PLAYING) {
-                    ytPlayerNode.playVideo();
-                }
-            }, 1200);
-        }
-
         function switchView(targetViewId) {
             document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
             document.querySelectorAll('.nav-tab-item').forEach(tab => tab.classList.remove('active'));
@@ -533,10 +418,8 @@
         }
 
         function scrubAudio(val) {
-            if(!ytPlayerNode || !ytPlayerNode.getDuration) return;
-            const targetSeconds = (val / 100) * ytPlayerNode.getDuration();
-            ytPlayerNode.seekTo(targetSeconds, true);
-            syncDataToVirtualRoomState();
+            if(!nativePlayer.duration) return;
+            nativePlayer.currentTime = (val / 100) * nativePlayer.duration;
         }
 
         function formatTime(secs) {
@@ -570,17 +453,10 @@
         }
 
         window.onload = () => {
+            nativePlayer = document.getElementById('tgSecureAudioEngine');
             buildRecommendations();
             renderTracksDOM(curatedRecommendations, 'libraryTracksOutput');
             renderTracksDOM(curatedRecommendations, 'songsResultsOutput');
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const autoRoomId = urlParams.get('joinRoom');
-            if(autoRoomId) {
-                document.getElementById('friendRoomIdInput').value = autoRoomId;
-                switchView('rooms');
-                showToast("📬 Sync Link Detected! Press Connect.");
-            }
         };
     </script>
 </body>
