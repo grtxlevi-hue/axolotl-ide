@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axolotl Spotify-X Premium Core</title>
+    <title>Axolotl Premium Core</title>
     
     <style>
         :root {
@@ -11,8 +11,6 @@
             --panel-glass: rgba(10, 18, 30, 0.85);
             --accent-glow: #ff0000; 
             --accent-glow-cyan: #00ffcc;
-            --accent-purple: #bd00ff;
-            --accent-pink: #ff007f;
             --text-main: #f1f5f9;
             --text-muted: #64748b;
             --glow-shadow: 0 0 25px rgba(255, 0, 0, 0.35);
@@ -75,7 +73,6 @@
         .strip-title { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .strip-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .strip-play-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; flex-shrink: 0; }
-        .track-strip.active .strip-play-btn { background: var(--accent-glow); color: #fff; font-weight: bold; box-shadow: var(--glow-shadow); }
 
         .player-view-wrapper { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; width: 100%; }
         .immersive-art-frame {
@@ -131,9 +128,8 @@
 
     <div id="toast-notification">Connecting Axolotl Cluster...</div>
 
-    <!-- 🌐 Telegram-Safe Video Stream Core Container -->
     <div style="position: absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;">
-        <video id="tgSecureAudioEngine" playsinline webkit-playsinline></video>
+        <iframe id="tgSecureIframeEngine" allow="autoplay; encrypted-media" src=""></iframe>
     </div>
 
     <div class="app-container">
@@ -179,7 +175,7 @@
                         <input type="range" class="time-slider" id="trackScrubber" min="0" max="100" value="0" oninput="scrubAudio(this.value)">
                         <div class="time-labels">
                             <span id="time-current">0:00</span>
-                            <span id="time-total">0:00</span>
+                            <span id="time-total">--:--</span>
                         </div>
                     </div>
 
@@ -219,7 +215,8 @@
     <script>
         let currentTracksList = [];
         let currentTrackIndex = 0;
-        let nativePlayer = document.getElementById('tgSecureAudioEngine');
+        let isTrackPlaying = false;
+        let trackCurrentTime = 0;
         let uiProgressTimer = null;
         let animationFrameId = null;
 
@@ -230,16 +227,15 @@
             { title: "Starboy", artist: "The Weeknd", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400", url: "jzD_yyEw0M4" }
         ];
 
-        // 🚀 TG App Bypass Stream Pipeline Engine 
+        // 🚀 Telegram Safe API Scraper 
         async function runCloudMusicSearch(query) {
             if (!query.trim()) return;
-            showToast("🔍 Fetching Secure Clusters...");
+            showToast("🔍 Searching Telegram Safe Nodes...");
 
             const instances = [
                 "https://iv.melmac.space",
                 "https://invidious.perennialte.ch",
-                "https://invidious.asir.dev",
-                "https://invidious.nerdvpn.de"
+                "https://invidious.asir.dev"
             ];
             
             let success = false;
@@ -257,8 +253,7 @@
                                 title: item.title,
                                 artist: item.author || "YouTube Artist",
                                 image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-                                url: item.videoId,
-                                streamUrl: `${base}/latest_version?id=${item.videoId}&v=mp4` // Telegram Secure Raw Pipeline
+                                url: item.videoId
                             }));
                             success = true;
                             break;
@@ -272,7 +267,7 @@
                 renderTracksDOM(currentTracksList, 'songsResultsOutput');
                 showToast("✨ Stream Packets Ready!");
             } else {
-                showToast("⚠️ All proxy clusters full. Try again!");
+                showToast("⚠️ Network Busy. Try again!");
             }
         }
 
@@ -311,11 +306,7 @@
             curatedRecommendations.forEach((track, idx) => {
                 const card = document.createElement('div');
                 card.className = 'recommend-card';
-                card.onclick = () => {
-                    // Inject standard stream for curated list
-                    track.streamUrl = `https://iv.melmac.space/latest_version?id=${track.url}&v=mp4`;
-                    launchAudioStream(idx, curatedRecommendations);
-                };
+                card.onclick = () => launchAudioStream(idx, curatedRecommendations);
                 card.innerHTML = `
                     <div style="width:100%; aspect-ratio:1; border-radius:12px; background-image: url('${track.image}'); background-size:cover; background-position:center;"></div>
                     <div style="font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${track.title}</div>
@@ -329,54 +320,44 @@
             currentTracksList = tracksContext;
             currentTrackIndex = index;
             const track = currentTracksList[index];
-            showToast("⏳ Bypassing Telegram Sandbox...");
+            showToast("⏳ Loading Official Secure Stream...");
 
-            if(!track.streamUrl) {
-                track.streamUrl = `https://iv.melmac.space/latest_version?id=${track.url}&v=mp4`;
-            }
+            const embedPlayer = document.getElementById('tgSecureIframeEngine');
+            // 🛡️ Bypassing sandbox using YouTube Official Embed protocol with autoplay enabled
+            embedPlayer.src = `https://www.youtube.com/embed/${track.url}?autoplay=1&enablejsapi=1&controls=0&rel=0`;
 
-            nativePlayer.pause();
-            nativePlayer.src = track.streamUrl;
-            nativePlayer.setAttribute('id', 'tgSecureAudioEngine');
-            nativePlayer.load();
-            
-            nativePlayer.play().then(() => {
-                handlePlaybackStart(track);
-            }).catch((err) => {
-                // Failover link reconstruction
-                nativePlayer.src = `https://invidious.perennialte.ch/latest_version?id=${track.url}&v=mp4`;
-                nativePlayer.play().then(() => handlePlaybackStart(track)).catch(()=>{
-                    showToast("❌ Telegram Sandbox Blocked Stream. Tap Play Again.");
-                });
-            });
-        }
-
-        function handlePlaybackStart(track) {
             updateUIElements(track);
             switchView('playing');
             setPlayUI(true);
+            isTrackPlaying = true;
+            trackCurrentTime = 0;
             startWaveformVisualizer();
             
+            // Artificial stable layout tracker for UI timeline in Sandboxed clients
             clearInterval(uiProgressTimer);
             uiProgressTimer = setInterval(() => {
-                const cur = nativePlayer.currentTime || 0;
-                const dur = nativePlayer.duration || 100;
-                document.getElementById('trackScrubber').value = (cur / dur) * 100;
-                document.getElementById('time-current').innerText = formatTime(cur);
-                document.getElementById('time-total').innerText = formatTime(dur);
-            }, 500);
+                if(isTrackPlaying) {
+                    trackCurrentTime += 1;
+                    document.getElementById('trackScrubber').value = (trackCurrentTime % 240 / 240) * 100;
+                    document.getElementById('time-current').innerText = formatTime(trackCurrentTime);
+                    document.getElementById('time-total').innerText = "Live";
+                }
+            }, 1000);
         }
 
         function togglePlayback() {
-            if (nativePlayer.paused) {
-                nativePlayer.play().then(() => {
-                    setPlayUI(true);
-                    startWaveformVisualizer();
-                });
-            } else {
-                nativePlayer.pause();
+            const embedPlayer = document.getElementById('tgSecureIframeEngine');
+            if (isTrackPlaying) {
+                // PostMessage interface triggers pause if API handshake gets dropped by sandbox policies
+                embedPlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                 setPlayUI(false);
+                isTrackPlaying = false;
                 cancelAnimationFrame(animationFrameId);
+            } else {
+                embedPlayer.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                setPlayUI(true);
+                isTrackPlaying = true;
+                startWaveformVisualizer();
             }
         }
 
@@ -418,8 +399,10 @@
         }
 
         function scrubAudio(val) {
-            if(!nativePlayer.duration) return;
-            nativePlayer.currentTime = (val / 100) * nativePlayer.duration;
+            const embedPlayer = document.getElementById('tgSecureIframeEngine');
+            const targetSeconds = (val / 100) * 180; 
+            trackCurrentTime = targetSeconds;
+            embedPlayer.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":[${targetSeconds},true]}`, '*');
         }
 
         function formatTime(secs) {
@@ -453,10 +436,10 @@
         }
 
         window.onload = () => {
-            nativePlayer = document.getElementById('tgSecureAudioEngine');
             buildRecommendations();
             renderTracksDOM(curatedRecommendations, 'libraryTracksOutput');
             renderTracksDOM(curatedRecommendations, 'songsResultsOutput');
+            showToast("🛰 Telegram Secure Sandbox Core Ready");
         };
     </script>
 </body>
