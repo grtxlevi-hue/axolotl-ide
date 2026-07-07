@@ -3,456 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Red Real Stream Music Player</title>
+    <title>ViMusic TG Mini App</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #050101;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .red-gradient-bg {
-            background: linear-gradient(180deg, #380606 0%, #0f0202 50%, #050101 100%);
-        }
-        .now-playing-bg {
-            background: linear-gradient(180deg, #540c0c 0%, #170404 60%, #050101 100%);
-        }
-        .glass-nav {
-            background: rgba(15, 5, 5, 0.8);
-            backdrop-filter: blur(25px);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.3); }
-            50% { transform: scaleY(1.2); }
-        }
-        .bar-active { animation: wave 1.2s ease-in-out infinite; transform-origin: bottom; }
-        .bar-active:nth-child(2) { animation-delay: 0.15s; animation-duration: 0.8s; }
-        .bar-active:nth-child(3) { animation-delay: 0.4s; animation-duration: 1.4s; }
-        .bar-active:nth-child(4) { animation-delay: 0.25s; animation-duration: 1s; }
-        .bar-active:nth-child(5) { animation-delay: 0.6s; animation-duration: 1.1s; }
-    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body class="text-gray-200 min-h-screen flex justify-center bg-zinc-950">
+<body class="bg-[#0d0e12] text-gray-200 min-h-screen p-4 flex flex-col justify-between pb-24 select-none">
 
-    <audio id="audio-engine" src="" crossorigin="anonymous"></audio>
+    <audio id="audio-player" crossorigin="anonymous"></audio>
 
-    <div class="w-full max-w-md min-h-screen red-gradient-bg flex flex-col justify-between relative pb-24 overflow-x-hidden">
-        
-        <div id="search-overlay" class="hidden fixed inset-0 z-50 bg-black/95 p-5 flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <div class="flex-1 bg-white/5 border border-white/10 rounded-full flex items-center px-4 py-2">
-                    <i class="fas fa-search text-gray-400 mr-3"></i>
-                    <input type="text" id="search-input" placeholder="Type song name & press Enter..." class="bg-transparent w-full focus:outline-none text-sm text-white">
-                </div>
-                <button onclick="toggleSearch(false)" class="text-sm font-medium text-red-500 px-2">Cancel</button>
+    <div>
+        <div class="flex justify-between items-center mb-5">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-compact-disc text-red-500 text-xl animate-spin" style="animation-duration: 4s;"></i>
+                <h1 class="text-base font-bold text-white">ViMusic Cloud Node</h1>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-3 no-scrollbar" id="search-results-list">
-                <p class="text-xs text-gray-500 text-center mt-10">Type song name and press Enter...</p>
-            </div>
+            <span class="text-[10px] bg-red-500/10 border border-red-500/20 text-red-400 px-2.5 py-1 rounded-full font-medium">TG Live</span>
         </div>
 
-        <div id="screen-home" class="flex-1 flex flex-col p-5 pt-6">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-full border-2 border-red-500 overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        <i class="fas fa-user text-sm text-gray-400"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400">Welcome to</p>
-                        <h2 class="text-lg font-bold tracking-wide text-red-500">Red Player</h2>
-                    </div>
-                </div>
-                <div class="flex gap-2.5">
-                    <button onclick="toggleSearch(true)" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5"><i class="fas fa-search text-sm"></i></button>
-                </div>
-            </div>
-
-            <div class="flex gap-2 overflow-x-auto py-3 no-scrollbar mt-4 text-xs">
-                <span onclick="loadTrending('hindi')" id="pill-hindi" class="genre-pill px-4 py-2 bg-red-600 rounded-full font-medium shrink-0 cursor-pointer shadow-lg shadow-red-900/30">Hindi Hits</span>
-                <span onclick="loadTrending('punjabi')" id="pill-punjabi" class="genre-pill px-4 py-2 bg-white/5 border border-white/10 rounded-full text-gray-400 shrink-0 cursor-pointer">Punjabi</span>
-                <span onclick="loadTrending('english')" id="pill-english" class="genre-pill px-4 py-2 bg-white/5 border border-white/10 rounded-full text-gray-400 shrink-0 cursor-pointer">English Pop</span>
-            </div>
-
-            <div class="mt-4">
-                <p class="text-sm font-semibold mb-2.5 tracking-wide text-gray-300">Featured Recommendation</p>
-                <div id="featured-banner" class="h-40 rounded-2xl relative overflow-hidden bg-cover bg-center p-5 flex flex-col justify-between border border-red-900/30 shadow-xl" style="background-image: linear-gradient(to right, rgba(0,0,0,0.85), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500');">
-                    <div class="max-w-[70%] z-10">
-                        <h3 id="banner-title" class="font-bold text-base leading-tight truncate">Loading Hit...</h3>
-                        <p id="banner-artist" class="text-[11px] text-red-400 mt-1 truncate">Trending Live</p>
-                    </div>
-                    <button onclick="playTrack(0)" class="w-max px-5 py-2 bg-red-600 text-white text-xs font-bold rounded-full shadow-lg z-10">Play Now</button>
-                </div>
-            </div>
-
-            <div class="mt-6 flex-1">
-                <div class="flex justify-between items-center mb-3">
-                    <p class="text-sm font-semibold tracking-wide text-gray-300">Trending Tracks</p>
-                    <span class="text-xs text-gray-500 font-mono" id="queue-count">0 tracks</span>
-                </div>
-                <div class="space-y-2.5 overflow-y-auto max-h-[280px] no-scrollbar pr-1" id="home-music-container">
-                    <p class="text-xs text-gray-400 text-center py-10 animate-pulse"><i class="fas fa-spinner fa-spin mr-2"></i>Fetching Live Songs...</p>
-                </div>
-            </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl flex items-center px-4 py-3 mb-4">
+            <i class="fas fa-search text-gray-400 mr-3 text-sm"></i>
+            <input type="text" id="search-input" placeholder="Search track, artist, or remix..." class="bg-transparent w-full focus:outline-none text-sm text-white">
         </div>
 
-        <div id="screen-library" class="hidden flex-1 flex flex-col p-5 pt-6">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold tracking-wide">Your Library</h2>
-                <span class="text-xs px-3 py-1 bg-white/5 rounded-full text-red-400">Liked (<span id="fav-count">0</span>)</span>
+        <div id="tracks-container" class="space-y-2 overflow-y-auto max-h-[60vh] pr-1">
+            <p class="text-xs text-gray-500 text-center py-10">Type song name and press Enter...</p>
+        </div>
+    </div>
+
+    <div id="mini-player" class="fixed bottom-4 left-4 right-4 bg-[#161822]/90 backdrop-blur-md border border-white/5 rounded-2xl p-3 flex items-center justify-between shadow-2xl hidden">
+        <div class="flex items-center gap-3 max-w-[60%]">
+            <div class="w-10 h-10 bg-zinc-800 rounded-xl overflow-hidden shrink-0 border border-white/10">
+                <img id="player-art" src="" class="w-full h-full object-cover">
             </div>
-            <div class="flex-1 space-y-2 mt-6 overflow-y-auto no-scrollbar" id="library-music-container">
-                <p class="text-xs text-gray-500 text-center py-10">No liked tracks yet. Tap heart icon during playback.</p>
+            <div class="truncate">
+                <h4 id="player-title" class="text-xs font-semibold truncate text-white">Song Title</h4>
+                <p id="player-artist" class="text-[10px] text-gray-400 mt-0.5 truncate">Artist</p>
             </div>
         </div>
-
-        <div id="screen-player" class="hidden fixed inset-0 z-40 now-playing-bg flex flex-col justify-between p-6">
-            <div class="flex justify-between items-center mt-2">
-                <button onclick="closePlayerPanel()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><i class="fas fa-chevron-down text-sm"></i></button>
-                <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase">Now Playing</span>
-                <button class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><i class="fas fa-share-alt text-sm"></i></button>
-            </div>
-
-            <div class="my-auto flex flex-col items-center py-4">
-                <div class="w-64 h-64 bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden border border-white/10 relative">
-                    <img id="player-album-art" src="" class="w-full h-full object-cover" alt="Album Art">
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center px-2">
-                <div class="max-w-[75%]">
-                    <h2 id="meta-title" class="text-xl font-bold tracking-wide truncate">Loading...</h2>
-                    <p id="meta-artist" class="text-sm text-red-400 mt-1 font-medium truncate">Live Stream</p>
-                </div>
-                <button id="player-heart-btn" onclick="handleLikeToggle()" class="w-11 h-11 rounded-full bg-white/5 flex items-center justify-center border border-white/5 text-gray-400"><i class="fas fa-heart"></i></button>
-            </div>
-
-            <div class="h-8 flex items-end justify-center gap-1.5 my-3 opacity-75">
-                <span class="w-1 h-3 bg-red-500 rounded-full v-bar"></span>
-                <span class="w-1 h-5 bg-red-400 rounded-full v-bar"></span>
-                <span class="w-1 h-6 bg-red-500 rounded-full v-bar"></span>
-                <span class="w-1 h-4 bg-red-600 rounded-full v-bar"></span>
-                <span class="w-1 h-5 bg-red-400 rounded-full v-bar"></span>
-            </div>
-
-            <div class="px-2">
-                <div id="seek-slider-root" onclick="handleProgressSeek(event)" class="w-full h-1.5 bg-white/10 rounded-full relative cursor-pointer">
-                    <div id="seek-fill" class="absolute top-0 left-0 h-full w-0 bg-red-600 rounded-full"></div>
-                    <div id="seek-handle" class="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-3 h-3 bg-white rounded-full"></div>
-                </div>
-                <div class="flex justify-between text-[11px] text-gray-400 mt-2 font-mono">
-                    <span id="lbl-time-current">0:00</span>
-                    <span id="lbl-time-total">0:00</span>
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center px-4 mb-4">
-                <button id="shuffle-btn" onclick="toggleShuffle()" class="text-gray-400 text-sm"><i class="fas fa-random"></i></button>
-                <div class="flex items-center gap-6">
-                    <button onclick="handlePrev()" class="text-gray-300 text-xl"><i class="fas fa-step-backward"></i></button>
-                    <button id="master-play-btn" onclick="handlePlayPause()" class="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-xl shadow-xl"><i class="fas fa-play ml-1"></i></button>
-                    <button onclick="handleNext()" class="text-gray-300 text-xl"><i class="fas fa-step-forward"></i></button>
-                </div>
-                <button id="loop-btn" onclick="toggleLoop()" class="text-gray-400 text-sm"><i class="fas fa-redo-alt"></i></button>
-            </div>
+        <div class="flex items-center gap-4 pr-1">
+            <button id="play-btn" onclick="togglePlay()" class="w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center text-xs shadow-lg"><i class="fas fa-play ml-0.5"></i></button>
         </div>
-
-        <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-20 glass-nav flex justify-around items-center px-6 z-30 rounded-t-3xl">
-            <button onclick="handleTabSwitch('home')" id="tab-btn-home" class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg">
-                <i class="fas fa-home text-lg"></i>
-            </button>
-            <button onclick="handleTabSwitch('library')" id="tab-btn-library" class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-white">
-                <i class="fas fa-music text-lg"></i>
-            </button>
-            <button onclick="openPlayerPanel()" class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-white">
-                <i class="fas fa-sliders-h text-lg"></i>
-            </button>
-        </div>
-
     </div>
 
     <script>
-        let currentQueue = [];
-        let favorites = [];
-        let currentTrackIdx = 0;
-        let isShuffle = false;
-        let isLoop = false;
-
-        const audio = document.getElementById('audio-engine');
-        const playBtn = document.getElementById('master-play-btn');
-        const fillBar = document.getElementById('seek-fill');
-        const handleDot = document.getElementById('seek-handle');
-        const txtCurrent = document.getElementById('lbl-time-current');
-        const txtTotal = document.getElementById('lbl-time-total');
-        const vBars = document.querySelectorAll('.v-bar');
-
-        // Dynamic Invidious Public Instances list for super fast engine load
-        const apiInstances = [
-            "https://invidious.projectsegfau.lt",
-            "https://vid.puffyan.us",
-            "https://invidious.nerdvpn.de"
-        ];
-        let currentInstance = apiInstances[0];
-
-        window.onload = () => {
-            loadTrending('hindi');
-            setupSearchEngine();
-        };
-
-        // Real-time Global Audio Fetcher from YouTube Database Network
-        async function fetchRealTracks(searchQuery) {
-            try {
-                const targetUrl = `${currentInstance}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`;
-                const response = await fetch(targetUrl);
-                const results = await response.json();
-
-                if (results && results.length > 0) {
-                    return results.slice(0, 12).map(item => ({
-                        title: item.title,
-                        artist: item.author || "YouTube Music",
-                        thumbnail: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`,
-                        // Stable streaming sound routing address
-                        url: `${currentInstance}/latest_version?id=${item.videoId}&itag=251` 
-                    }));
-                }
-            } catch (e) {
-                console.warn("Instance overloaded, switching stream lines...");
-                // Rotational fallback if server load spikes
-                currentInstance = apiInstances[Math.floor(Math.random() * apiInstances.length)];
-            }
-            return [];
+        // Init TG WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
         }
 
-        async function loadTrending(language) {
-            const container = document.getElementById('home-music-container');
-            container.innerHTML = `<p class="text-xs text-gray-400 text-center py-10 animate-pulse"><i class="fas fa-spinner fa-spin mr-2"></i>Loading live ${language} songs...</p>`;
-            
-            document.querySelectorAll('.genre-pill').forEach(el => el.className = "genre-pill px-4 py-2 bg-white/5 border border-white/10 rounded-full text-gray-400 shrink-0 cursor-pointer");
-            document.getElementById(`pill-${language}`).className = "genre-pill px-4 py-2 bg-red-600 rounded-full font-medium shrink-0 cursor-pointer shadow-lg";
+        const audio = document.getElementById('audio-player');
+        let searchQueue = [];
 
-            let query = "new hindi songs 2026 audio";
-            if (language === 'punjabi') query = "latest punjabi tracks 2026 audio";
-            if (language === 'english') query = "billboard trending pop hits audio";
+        // Search Trigger
+        document.getElementById('search-input').addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (!query) return;
 
-            const tracks = await fetchRealTracks(query);
-            
-            if(tracks.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">Server busy. Tap the category button again to reconnect.</p>`;
-                return;
-            }
+                const container = document.getElementById('tracks-container');
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-10 animate-pulse"><i class="fas fa-spinner fa-spin mr-2"></i>Fetching from ViMusic cloud...</p>`;
 
-            currentQueue = tracks;
-            document.getElementById('queue-count').innerText = `${tracks.length} tracks`;
-            renderQueueUI();
-
-            // Populate Top Big Banner
-            document.getElementById('banner-title').innerText = tracks[0].title;
-            document.getElementById('banner-artist').innerText = tracks[0].artist;
-            document.getElementById('featured-banner').style.backgroundImage = `linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.3)), url('${tracks[0].thumbnail}')`;
-        }
-
-        function renderQueueUI() {
-            const container = document.getElementById('home-music-container');
-            container.innerHTML = "";
-            currentQueue.forEach((song, i) => {
-                container.innerHTML += `
-                    <div onclick="playTrack(${i})" class="flex items-center justify-between p-2 rounded-xl bg-white/[0.02] border border-white/[0.03] hover:bg-white/5 transition cursor-pointer">
-                        <div class="flex items-center gap-3.5 max-w-[80%]">
-                            <div class="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-zinc-900">
-                                <img src="${song.thumbnail}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100'">
-                            </div>
-                            <div class="truncate">
-                                <h4 class="text-sm font-medium truncate">${song.title}</h4>
-                                <p class="text-xs text-gray-400 mt-0.5 truncate">${song.artist}</p>
-                            </div>
-                        </div>
-                        <button class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-xs"><i class="fas fa-play text-[9px] text-red-500 ml-0.5"></i></button>
-                    </div>`;
-            });
-        }
-
-        // Live Dynamic Search Interface Engine
-        function setupSearchEngine() {
-            const input = document.getElementById('search-input');
-            input.addEventListener('keypress', async function(e) {
-                if (e.key === 'Enter') {
-                    const query = input.value.trim();
-                    if (!query) return;
-
-                    const resultsList = document.getElementById('search-results-list');
-                    resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center mt-10 animate-pulse"><i class="fas fa-spinner fa-spin mr-2"></i>Searching live YouTube index...</p>`;
-
-                    const results = await fetchRealTracks(query + " audio");
-                    resultsList.innerHTML = "";
+                try {
+                    // GitHub open-source Piped/Invidious public API routing
+                    const res = await fetch(`https://inv.tux.digital/api/v1/search?q=${encodeURIComponent(query)}&type=video`);
+                    const data = await res.json();
                     
-                    if (results.length === 0) {
-                        resultsList.innerHTML = `<p class="text-xs text-gray-500 text-center mt-10">No songs found. Try checking typing spelling.</p>`;
+                    searchQueue = data.filter(item => item.liveNow === false);
+                    container.innerHTML = "";
+
+                    if(searchQueue.length === 0) {
+                        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No tracks found.</p>`;
                         return;
                     }
 
-                    results.forEach((song) => {
-                        resultsList.innerHTML += `
-                            <div onclick="injectSearchTrack(${JSON.stringify(song).replace(/"/g, '&quot;')})" class="flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-red-950/20 transition cursor-pointer">
-                                <div class="w-14 h-10 rounded overflow-hidden shrink-0 bg-zinc-800">
-                                    <img src="${song.thumbnail}" class="w-full h-full object-cover">
+                    searchQueue.forEach((track, idx) => {
+                        container.innerHTML += `
+                            <div onclick="playTrack(${idx})" class="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/5 transition cursor-pointer">
+                                <div class="flex items-center gap-3 max-w-[85%]">
+                                    <img src="${track.videoThumbnails[0].url}" class="w-11 h-11 rounded-lg object-cover border border-white/5 shrink-0">
+                                    <div class="truncate">
+                                        <h4 class="text-xs font-semibold truncate text-gray-200">${track.title}</h4>
+                                        <p class="text-[10px] text-gray-400 mt-0.5 truncate">${track.author}</p>
+                                    </div>
                                 </div>
-                                <div class="flex-1 truncate">
-                                    <h4 class="text-xs font-medium text-white truncate">${song.title}</h4>
-                                    <p class="text-[11px] text-gray-400 mt-0.5 truncate">${song.artist}</p>
-                                </div>
-                                <i class="fas fa-play text-xs text-red-500 px-2"></i>
+                                <i class="fas fa-play text-[10px] text-red-500 px-2"></i>
                             </div>`;
                     });
+                } catch (err) {
+                    container.innerHTML = `<p class="text-xs text-red-400 text-center py-10">Server busy. Try again.</p>`;
                 }
-            });
-        }
-
-        function injectSearchTrack(songObj) {
-            currentQueue.unshift(songObj);
-            renderQueueUI();
-            toggleSearch(false);
-            playTrack(0);
-        }
-
-        // Core Player Controllers
-        function loadTrackData(idx) {
-            if (currentQueue.length === 0) return;
-            currentTrackIdx = idx;
-            const song = currentQueue[currentTrackIdx];
-
-            audio.src = song.url;
-            document.getElementById('meta-title').innerText = song.title;
-            document.getElementById('meta-artist').innerText = song.artist;
-            document.getElementById('player-album-art').src = song.thumbnail;
-            
-            fillBar.style.width = '0%';
-            handleDot.style.left = '0%';
-            updateHeartUI(song);
-
-            audio.play().then(() => {
-                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                toggleVisualizer(true);
-            }).catch(err => {
-                // Autoplay block bypass handler
-                playBtn.innerHTML = '<i class="fas fa-play ml-1"></i>';
-            });
-        }
-
-        function playTrack(idx) {
-            loadTrackData(idx);
-            openPlayerPanel();
-        }
-
-        function handlePlayPause() {
-            if (audio.paused) {
-                audio.play();
-                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                toggleVisualizer(true);
-            } else {
-                audio.pause();
-                playBtn.innerHTML = '<i class="fas fa-play ml-1"></i>';
-                toggleVisualizer(false);
-            }
-        }
-
-        audio.addEventListener('timeupdate', () => {
-            if (audio.duration) {
-                const pct = (audio.currentTime / audio.duration) * 100;
-                fillBar.style.width = `${pct}%`;
-                handleDot.style.left = `${pct}%`;
-                txtCurrent.innerText = formatDuration(audio.currentTime);
-                txtTotal.innerText = formatDuration(audio.duration);
             }
         });
 
-        audio.addEventListener('ended', () => isLoop ? (audio.currentTime = 0, audio.play()) : handleNext());
+        function playTrack(idx) {
+            const track = searchQueue[idx];
+            document.getElementById('player-title').innerText = track.title;
+            document.getElementById('player-artist').innerText = track.author;
+            document.getElementById('player-art').src = track.videoThumbnails[0].url;
+            document.getElementById('mini-player').style.display = 'flex';
 
-        function handleProgressSeek(e) {
-            const root = document.getElementById('seek-slider-root');
-            const box = root.getBoundingClientRect();
-            audio.currentTime = ((e.clientX - box.left) / box.width) * audio.duration;
+            // Extracting pure direct audio stream URL from open-source endpoint
+            audio.src = `https://pipedapi.kavin.rocks/streams/${track.videoId}`;
+            
+            // Resolving direct high-speed audio bypass
+            fetch(`https://pipedapi.kavin.rocks/streams/${track.videoId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data && data.audioStreams) {
+                        // Picking the best quality secure audio file stream
+                        const stream = data.audioStreams.find(s => s.mimeType.includes('audio/mp4')) || data.audioStreams[0];
+                        audio.src = stream.url;
+                        audio.play();
+                        document.getElementById('play-btn').innerHTML = '<i class="fas fa-pause"></i>';
+                    }
+                });
         }
 
-        function handleNext() {
-            let nextIdx = isShuffle ? Math.floor(Math.random() * currentQueue.length) : (currentTrackIdx + 1) % currentQueue.length;
-            playTrack(nextIdx);
-        }
-
-        function handlePrev() {
-            let prevIdx = (currentTrackIdx - 1 + currentQueue.length) % currentQueue.length;
-            playTrack(prevIdx);
-        }
-
-        function formatDuration(sec) {
-            let m = Math.floor(sec / 60), s = Math.floor(sec % 60);
-            return `${m}:${s < 10 ? '0' + s : s}`;
-        }
-
-        function toggleVisualizer(on) {
-            document.querySelectorAll('.v-bar').forEach(b => on ? b.classList.add('bar-active') : b.classList.remove('bar-active'));
-        }
-
-        // Library Storage Systems
-        function handleLikeToggle() {
-            const track = currentQueue[currentTrackIdx];
-            const idx = favorites.findIndex(s => s.title === track.title);
-            idx === -1 ? favorites.push(track) : favorites.splice(idx, 1);
-            updateHeartUI(track);
-            renderLibrary();
-        }
-
-        function updateHeartUI(track) {
-            const isFav = favorites.some(s => s.title === track.title);
-            document.getElementById('player-heart-btn').className = isFav ? 
-                "w-11 h-11 rounded-full bg-red-600/20 flex items-center justify-center border border-red-500 text-red-500" : 
-                "w-11 h-11 rounded-full bg-white/5 flex items-center justify-center border border-white/5 text-gray-400";
-        }
-
-        function renderLibrary() {
-            document.getElementById('fav-count').innerText = favorites.length;
-            const container = document.getElementById('library-music-container');
-            if (favorites.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No liked tracks yet.</p>`;
-                return;
-            }
-            container.innerHTML = "";
-            favorites.forEach((song) => {
-                container.innerHTML += `
-                    <div class="flex items-center justify-between p-2 rounded-xl bg-white/[0.01] hover:bg-white/5">
-                        <div class="flex items-center gap-3 max-w-[85%]">
-                            <img src="${song.thumbnail}" class="w-10 h-10 rounded object-cover border border-white/5">
-                            <div class="truncate">
-                                <h4 class="text-xs font-medium text-white truncate">${song.title}</h4>
-                                <p class="text-[11px] text-gray-400 truncate mt-0.5">${song.artist}</p>
-                            </div>
-                        </div>
-                        <i class="fas fa-heart text-xs text-red-500 pr-2"></i>
-                    </div>`;
-            });
-        }
-
-        function toggleShuffle() { isShuffle = !isShuffle; document.getElementById('shuffle-btn').className = isShuffle ? "text-red-500 text-sm" : "text-gray-400 text-sm"; }
-        function toggleLoop() { isLoop = !isLoop; document.getElementById('loop-btn').className = isLoop ? "text-red-500 text-sm" : "text-gray-400 text-sm"; }
-        function toggleSearch(show) { document.getElementById('search-overlay').style.display = show ? 'flex' : 'none'; if(show) document.getElementById('search-input').focus(); }
-        function openPlayerPanel() { document.getElementById('screen-player').style.display = 'flex'; }
-        function closePlayerPanel() { document.getElementById('screen-player').style.display = 'none'; }
-
-        function handleTabSwitch(tab) {
-            const home = document.getElementById('screen-home'), lib = document.getElementById('screen-library');
-            const bHome = document.getElementById('tab-btn-home'), bLib = document.getElementById('tab-btn-library');
-            if(tab === 'home') {
-                home.style.display = 'flex'; lib.style.display = 'none';
-                bHome.className = "w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg";
-                bLib.className = "w-12 h-12 rounded-full flex items-center justify-center text-gray-400";
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                document.getElementById('play-btn').innerHTML = '<i class="fas fa-pause"></i>';
             } else {
-                lib.style.display = 'flex'; home.style.display = 'none';
-                bLib.className = "w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg";
-                bHome.className = "w-12 h-12 rounded-full flex items-center justify-center text-gray-400";
+                audio.pause();
+                document.getElementById('play-btn').innerHTML = '<i class="fas fa-play ml-0.5"></i>';
             }
         }
     </script>
