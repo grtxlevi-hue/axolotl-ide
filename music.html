@@ -131,9 +131,8 @@
 
     <div id="toast-notification">Connecting Axolotl Cluster...</div>
 
-    <!-- 🌐 Telegram-Safe Video Stream Core Container -->
     <div style="position: absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;">
-        <video id="tgSecureAudioEngine" playsinline webkit-playsinline></video>
+        <audio id="tgSecureAudioEngine" playsinline prelaod="auto"></audio>
     </div>
 
     <div class="app-container">
@@ -185,7 +184,7 @@
 
                     <div class="player-controls">
                         <button class="ctrl-btn" onclick="adjustTrack(-1)">⏮</button>
-                        <button class="ctrl-btn main-play" id="masterPlayPauseBtn" onclick="togglePlayback()">▶</button>
+                        <button class="ctrl-btn main-play" id="masterPlayPauseBtn" onclick="togglePlayback(event)">▶</button>
                         <button class="ctrl-btn" onclick="adjustTrack(1)">⏭</button>
                     </div>
                 </div>
@@ -200,7 +199,7 @@
                     <div class="pill-desc" id="pill-track-artist">Select track</div>
                 </div>
             </div>
-            <button class="pill-btn-play" id="pill-play-trigger" onclick="event.stopPropagation(); togglePlayback();">▶</button>
+            <button class="pill-btn-play" id="pill-play-trigger" onclick="togglePlayback(event)">▶</button>
         </div>
 
         <div class="floating-navbar">
@@ -223,6 +222,14 @@
         let uiProgressTimer = null;
         let animationFrameId = null;
 
+        // Invidious proxies array ko optimize kiya stable endpoints ke saath
+        const proxyInstances = [
+            "https://iv.melmac.space",
+            "https://invidious.perennialte.ch",
+            "https://invidious.nerdvpn.de",
+            "https://invidious.flokinet.to"
+        ];
+
         const curatedRecommendations = [
             { title: "Dekhte Dekhte", artist: "Atif Aslam", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400", url: "w4ClQO58-R4" },
             { title: "Softly", artist: "Karan Aujla", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400", url: "c9Rr6mIDvX4" },
@@ -230,23 +237,15 @@
             { title: "Starboy", artist: "The Weeknd", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400", url: "jzD_yyEw0M4" }
         ];
 
-        // 🚀 TG App Bypass Stream Pipeline Engine 
         async function runCloudMusicSearch(query) {
             if (!query.trim()) return;
             showToast("🔍 Fetching Secure Clusters...");
-
-            const instances = [
-                "https://iv.melmac.space",
-                "https://invidious.perennialte.ch",
-                "https://invidious.asir.dev",
-                "https://invidious.nerdvpn.de"
-            ];
             
             let success = false;
-            for(let base of instances) {
+            for(let base of proxyInstances) {
                 try {
                     const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 4000);
+                    const timeout = setTimeout(() => controller.abort(), 5000);
                     const res = await fetch(`${base}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, { signal: controller.signal });
                     clearTimeout(timeout);
 
@@ -258,13 +257,13 @@
                                 artist: item.author || "YouTube Artist",
                                 image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
                                 url: item.videoId,
-                                streamUrl: `${base}/latest_version?id=${item.videoId}&v=mp4` // Telegram Secure Raw Pipeline
+                                streamUrl: `${base}/latest_version?id=${item.videoId}&v=mp4`
                             }));
                             success = true;
                             break;
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.error("Proxy error, trying next..."); }
             }
 
             if (success && currentTracksList.length > 0) {
@@ -312,8 +311,8 @@
                 const card = document.createElement('div');
                 card.className = 'recommend-card';
                 card.onclick = () => {
-                    // Inject standard stream for curated list
-                    track.streamUrl = `https://iv.melmac.space/latest_version?id=${track.url}&v=mp4`;
+                    const id = track.url || track.videoId;
+                    track.streamUrl = `${proxyInstances[0]}/latest_version?id=${id}&v=mp4`;
                     launchAudioStream(idx, curatedRecommendations);
                 };
                 card.innerHTML = `
@@ -331,24 +330,28 @@
             const track = currentTracksList[index];
             showToast("⏳ Bypassing Telegram Sandbox...");
 
+            const trackId = track.url || track.videoId;
             if(!track.streamUrl) {
-                track.streamUrl = `https://iv.melmac.space/latest_version?id=${track.url}&v=mp4`;
+                track.streamUrl = `${proxyInstances[0]}/latest_version?id=${trackId}&v=mp4`;
             }
 
             nativePlayer.pause();
             nativePlayer.src = track.streamUrl;
-            nativePlayer.setAttribute('id', 'tgSecureAudioEngine');
             nativePlayer.load();
             
-            nativePlayer.play().then(() => {
-                handlePlaybackStart(track);
-            }).catch((err) => {
-                // Failover link reconstruction
-                nativePlayer.src = `https://invidious.perennialte.ch/latest_version?id=${track.url}&v=mp4`;
-                nativePlayer.play().then(() => handlePlaybackStart(track)).catch(()=>{
-                    showToast("❌ Telegram Sandbox Blocked Stream. Tap Play Again.");
+            let playPromise = nativePlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    handlePlaybackStart(track);
+                }).catch((err) => {
+                    // Failover logic optimized
+                    console.log("Primary proxy blocked, switching source...");
+                    nativePlayer.src = `${proxyInstances[1]}/latest_version?id=${trackId}&v=mp4`;
+                    nativePlayer.play()
+                        .then(() => handlePlaybackStart(track))
+                        .catch(() => showToast("❌ Sandbox Stream Blocked. Tap Play again."));
                 });
-            });
+            }
         }
 
         function handlePlaybackStart(track) {
@@ -359,20 +362,23 @@
             
             clearInterval(uiProgressTimer);
             uiProgressTimer = setInterval(() => {
-                const cur = nativePlayer.currentTime || 0;
-                const dur = nativePlayer.duration || 100;
-                document.getElementById('trackScrubber').value = (cur / dur) * 100;
-                document.getElementById('time-current').innerText = formatTime(cur);
-                document.getElementById('time-total').innerText = formatTime(dur);
+                if(!nativePlayer.paused) {
+                    const cur = nativePlayer.currentTime || 0;
+                    const dur = nativePlayer.duration || 1;
+                    document.getElementById('trackScrubber').value = (cur / dur) * 100;
+                    document.getElementById('time-current').innerText = formatTime(cur);
+                    document.getElementById('time-total').innerText = formatTime(dur);
+                }
             }, 500);
         }
 
-        function togglePlayback() {
+        function togglePlayback(event) {
+            if(event) event.stopPropagation(); // Pill switch view bubble block karne ke liye
             if (nativePlayer.paused) {
                 nativePlayer.play().then(() => {
                     setPlayUI(true);
                     startWaveformVisualizer();
-                });
+                }).catch(() => showToast("⚠️ Playback trigger error"));
             } else {
                 nativePlayer.pause();
                 setPlayUI(false);
@@ -413,8 +419,9 @@
             document.getElementById(`view-${targetViewId}`).classList.add('active');
             document.getElementById(`tab-${targetViewId}`).classList.add('active');
             
-            const isPlayingOrNoTrack = targetViewId === 'playing' || !currentTracksList[currentTrackIndex];
-            document.getElementById('audio-pill-bar').style.display = isPlayingOrNoTrack ? 'none' : 'flex';
+            const isPlayingView = targetViewId === 'playing';
+            const hasActiveTrack = currentTracksList.length > 0;
+            document.getElementById('audio-pill-bar').style.display = (!isPlayingView && hasActiveTrack) ? 'flex' : 'none';
         }
 
         function scrubAudio(val) {
@@ -423,7 +430,7 @@
         }
 
         function formatTime(secs) {
-            if (isNaN(secs)) return "0:00";
+            if (isNaN(secs) || !isFinite(secs)) return "0:00";
             let m = Math.floor(secs / 60); let s = Math.floor(secs % 60);
             return `${m}:${s < 10 ? '0' : ''}${s}`;
         }
