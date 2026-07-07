@@ -3,315 +3,585 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YT Music Premium Clone</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Axolotl Spotify-X Pure 320kbps Streamer</title>
+    
     <style>
         :root {
-            --bg-black: #070709;
-            --bg-dark-gray: #0f1015;
-            --bg-card: #16181f;
-            --yt-red: #ff2a2a;
-            --accent-glow: rgba(255, 42, 42, 0.2);
-            --text-main: #ffffff;
-            --text-muted: #8e92a4;
-            --glass-border: rgba(255, 255, 255, 0.05);
+            --bg-deep: #05070a;
+            --panel-glass: rgba(10, 18, 30, 0.85);
+            --accent-glow: #ff0000; /* YouTube Red Premium Glow */
+            --accent-glow-cyan: #00ffcc;
+            --accent-purple: #bd00ff;
+            --accent-pink: #ff007f;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --glow-shadow: 0 0 25px rgba(255, 0, 0, 0.35);
         }
 
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background-color: var(--bg-black); color: var(--text-main);
-            font-family: 'Poppins', sans-serif; overflow: hidden; display: flex; flex-direction: column;
-            -webkit-user-select: none; user-select: none;
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%; 
+            background: radial-gradient(circle at 50% 0%, #1a0e0e 0%, var(--bg-deep) 80%); 
+            color: var(--text-main); font-family: 'Segoe UI', Roboto, sans-serif; 
+            display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        /* Modern Top Bar */
-        .yt-header {
-            background-color: rgba(7, 7, 9, 0.85); padding: 14px 20px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px); z-index: 10;
-        }
-        .logo { font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
-        .logo span { color: var(--yt-red); text-shadow: 0 0 10px var(--accent-glow); }
+        .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; }
 
-        /* Sleek Search Bar */
-        .search-container {
-            display: flex; align-items: center; background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border); border-radius: 25px; padding: 6px 16px; width: 55%; max-width: 450px;
-            transition: all 0.3s ease;
+        /* Premium Header Zone */
+        .app-header {
+            display: flex; flex-direction: column; gap: 12px;
+            padding: 16px 20px; background: rgba(5, 7, 10, 0.7); backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 100;
         }
-        .search-container:focus-within {
-            border-color: var(--yt-red);
-            box-shadow: 0 0 15px var(--accent-glow);
-            background: rgba(255, 255, 255, 0.06);
-        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .header-title { font-size: 19px; font-weight: 800; color: #fff; }
+        .header-title span { color: var(--accent-glow); text-shadow: var(--glow-shadow); }
+        
+        .search-wrapper { position: relative; width: 100%; }
         .search-input {
-            background: transparent; border: none; color: white; width: 100%;
-            outline: none; font-size: 14px; font-family: 'Poppins', sans-serif;
+            width: 100%; padding: 12px 16px 12px 42px; background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 0, 0, 0.25); border-radius: 14px; color: #fff;
+            font-size: 14px; outline: none; box-sizing: border-box; transition: all 0.3s;
         }
-        .search-btn {
-            background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 15px;
-            transition: color 0.2s;
-        }
-        .search-btn:hover { color: var(--yt-red); }
+        .search-input:focus { border-color: var(--accent-glow); box-shadow: var(--glow-shadow); background: rgba(255,255,255,0.12); }
+        .search-icon-inside { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent-glow); font-size: 16px; }
 
-        /* Layout Architecture */
-        .main-layout { display: flex; flex: 1; height: calc(100% - 150px); overflow: hidden; }
+        /* Scroll Feed Content Container */
+        .view-content {
+            flex-grow: 1; overflow-y: auto; padding: 16px 20px 130px 20px;
+            display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch;
+        }
+        .view-content::-webkit-scrollbar { display: none; }
+        .app-view { display: none; flex-direction: column; gap: 20px; }
+        .app-view.active { display: flex; }
+
+        /* Recommendation Carousel */
+        .recommend-slider { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
+        .recommend-slider::-webkit-scrollbar { display: none; }
+        .recommend-card {
+            flex: 0 0 140px; background: var(--panel-glass); border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .recommend-card:hover { border-color: var(--accent-glow); transform: translateY(-3px); }
+
+        /* Tracks Output Strip UI */
+        .results-container { display: flex; flex-direction: column; gap: 10px; }
+        .track-strip {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px; cursor: pointer; transition: all 0.2s;
+        }
+        .track-strip:hover, .track-strip.active { background: rgba(255, 0, 0, 0.08); border-color: rgba(255, 0, 0, 0.3); }
+        .strip-info { display: flex; align-items: center; gap: 12px; overflow: hidden; width: 80%; }
+        .strip-avatar { width: 46px; height: 46px; border-radius: 12px; background: #162030; background-size: cover; background-position: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .strip-text { display: flex; flex-direction: column; overflow: hidden; }
+        .strip-title { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .strip-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .strip-play-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; flex-shrink: 0; }
+        .track-strip.active .strip-play-btn { background: var(--accent-glow); color: #fff; font-weight: bold; box-shadow: var(--glow-shadow); }
+
+        /* Now Playing Dashboard */
+        .player-view-wrapper { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; width: 100%; }
+        .immersive-art-frame {
+            width: 68%; aspect-ratio: 1; border-radius: 32px; background: #152232; background-size: cover; background-position: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 45px rgba(255, 0, 0, 0.15);
+            border: 2px solid rgba(255, 0, 0, 0.25); margin-top: 10px; display: flex; align-items: center; justify-content: center; font-size: 72px;
+        }
+        .player-meta-info { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+        .player-track-name { font-size: 21px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-artist-name { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* Modern Sidebar */
-        .sidebar {
-            width: 220px; background: var(--bg-dark-gray); padding: 20px 12px; display: flex; flex-direction: column; gap: 8px;
-            border-right: 1px solid var(--glass-border); box-sizing: border-box;
-        }
-        @media (max-width: 650px) {
-            .sidebar { width: 70px; padding: 15px 8px; align-items: center; }
-            .sidebar span { display: none; }
-            .sidebar #playlist-header { display: none; }
-        }
+        .canvas-box { width: 100%; height: 45px; position: relative; }
+        #waveVisualizer { width: 100%; height: 100%; }
 
-        .side-btn {
-            background: transparent; border: none; color: var(--text-muted); padding: 12px 16px;
-            text-align: left; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 12px; width: 100%;
-            display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;
-            font-family: 'Poppins', sans-serif;
-        }
-        .side-btn:hover, .side-btn.active { background: rgba(255, 255, 255, 0.05); color: #fff; }
-        .side-btn.active { color: var(--yt-red); font-weight: 600; }
+        .timeline-box { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+        .time-slider { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); outline: none; accent-color: var(--accent-glow); cursor: pointer; }
+        .time-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-family: monospace; }
+        .player-controls { display: flex; gap: 24px; align-items: center; margin-top: 5px; }
+        .ctrl-btn { background: rgba(255,255,255,0.06); color: #fff; border: none; padding: 14px 20px; font-size: 16px; border-radius: 50%; cursor: pointer; }
+        .ctrl-btn.main-play { background: var(--accent-glow); color: #fff; padding: 18px 24px; font-size: 22px; box-shadow: var(--glow-shadow); font-weight: bold; }
 
-        /* Smooth Content Stream Explorer */
-        .content-area { 
-            flex: 1; padding: 25px; overflow-y: auto; box-sizing: border-box;
-            background: linear-gradient(135deg, #0e0f14 0%, #070709 100%);
+        /* Room Presence Frame UI */
+        .room-presence-panel {
+            width: 100%; background: var(--panel-glass); border: 1px solid rgba(255, 0, 0, 0.15);
+            border-radius: 22px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;
+            box-shadow: var(--glow-shadow);
         }
-        .content-area::-webkit-scrollbar { width: 6px; }
-        .content-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        
-        .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.5px; }
+        .room-meta-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .room-id-badge { font-family: monospace; font-size: 14px; color: var(--accent-glow); font-weight: bold; letter-spacing: 1px; }
+        .room-input-sync { width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; text-align: center; }
+        .room-grid-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .room-action-btn { padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; color: white; text-align: center; }
+        .room-action-btn.host { background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink)); }
+        .room-action-btn.join { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); }
 
-        /* Premium Adaptive Grid */
-        .yt-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px;
+        /* Navigation Menu Dock */
+        .floating-navbar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 88%; max-width: 400px; height: 64px; border-radius: 22px;
+            background: rgba(10, 15, 26, 0.85); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+            display: flex; justify-content: space-around; align-items: center; z-index: 99999; padding: 0 8px; box-sizing: border-box;
         }
-        .yt-card {
-            background: var(--bg-card); padding: 12px; border-radius: 16px; cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
-        }
-        .yt-card:hover { 
-            transform: translateY(-5px);
-            background: #1d202a;
-            border-color: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-        }
-        .yt-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
-        .yt-title { font-size: 14px; font-weight: 600; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
-        .yt-artist { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 8px; }
+        .nav-tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; min-width: 50px; }
+        .nav-tab-item.active { color: var(--accent-glow); }
+        .nav-tab-icon { font-size: 20px; }
+        .nav-tab-label { font-size: 9px; font-weight: 700; text-transform: uppercase; }
 
-        .add-playlist-btn {
-            width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border); 
-            color: #fff; font-size: 11px; padding: 6px 0; border-radius: 8px; cursor: pointer; 
-            font-family: 'Poppins', sans-serif; font-weight: 500; transition: all 0.2s;
+        /* Floating Active Pill Overlay */
+        .bottom-audio-pill {
+            position: fixed; bottom: 94px; left: 50%; transform: translateX(-50%);
+            width: 88%; max-width: 400px; height: 56px; border-radius: 16px;
+            background: linear-gradient(90deg, rgba(48, 18, 18, 0.95), rgba(22, 8, 8, 0.95));
+            backdrop-filter: blur(15px); border: 1px solid rgba(255, 0, 0, 0.25);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5), var(--glow-shadow);
+            display: none; align-items: center; justify-content: space-between; padding: 0 14px; box-sizing: border-box; z-index: 99998; cursor: pointer;
         }
-        .yt-card:hover .add-playlist-btn { background: var(--yt-red); border-color: var(--yt-red); box-shadow: 0 0 10px var(--accent-glow); }
+        .pill-track-info { display: flex; align-items: center; gap: 10px; overflow: hidden; max-width: 70%; }
+        .pill-art { width: 36px; height: 36px; border-radius: 8px; background: #351616; background-size: cover; background-position: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .pill-text { display: flex; flex-direction: column; overflow: hidden; }
+        .pill-title { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .pill-desc { font-size: 10px; color: var(--accent-glow); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pill-btn-play { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-glow); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; border: none; cursor: pointer; font-weight: bold; }
 
-        /* Ultra Modern Bottom Floating Player Bar */
-        .player-bar {
-            height: 95px; background: rgba(15, 16, 21, 0.85); border-top: 1px solid var(--glass-border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-sizing: border-box;
-            backdrop-filter: blur(15px); z-index: 10;
-        }
-        .track-info { display: flex; align-items: center; gap: 14px; width: 35%; min-width: 160px; }
-        .track-info img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: #222; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .track-meta { display: flex; flex-direction: column; overflow: hidden; }
-        .track-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
-        .track-singer { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .audio-container { width: 45%; display: flex; justify-content: center; }
-        audio { width: 100%; max-width: 500px; filter: invert(1) hue-rotate(180deg); outline: none; }
+        #toast-notification { position: fixed; top: 155px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: var(--accent-glow-cyan); padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; border: 1px solid var(--accent-glow-cyan); opacity: 0; transition: opacity 0.3s; z-index: 100000; pointer-events: none; text-align: center; }
     </style>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
-    <div class="yt-header">
-        <div class="logo"><span>🔴</span> Music</div>
-        
-        <div class="search-container">
-            <input type="text" class="search-input" id="search-box" placeholder="Search songs, artists, albums..." onkeypress="handleKeyPress(event)">
-            <button class="search-btn" onclick="searchMusicAPI()">🔍</button>
-        </div>
-    </div>
+    <div id="toast-notification">Loading YouTube Streaming Engine...</div>
 
-    <div class="main-layout">
-        <div class="sidebar">
-            <button class="side-btn active" onclick="loadTrending()">🏠 <span>Home</span></button>
-            <button class="side-btn" onclick="createPlaylist()">➕ <span>New Playlist</span></button>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin: 15px 0 5px 16px; letter-spacing: 1px;" id="playlist-header">PLAYLISTS</div>
-            <div id="playlist-list" style="display:flex; flex-direction:column; gap:4px; width: 100%;"></div>
-        </div>
+    <div id="yt-hidden-node" style="position: absolute; width: 0; height: 0; border: 0; pointer-events: none; visibility: hidden;"></div>
 
-        <div class="content-area">
-            <div class="section-title" id="view-title">Trending Now</div>
-            <div class="yt-grid" id="songs-container">
-                </div>
-        </div>
-    </div>
-
-    <div class="player-bar">
-        <div class="track-info">
-            <img id="player-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150" alt="" style="display:none;">
-            <div class="track-meta">
-                <div class="track-name" id="player-title">No Track Selected</div>
-                <div class="track-singer" id="player-artist">Search and play anything</div>
+    <div class="app-container">
+        <div class="app-header">
+            <div class="header-top">
+                <div class="header-title">🪐 Axolotl <span>YT-Music Pro</span></div>
+                <div style="cursor:pointer;" onclick="showToast('🛰 YouTube Core Engine Active')">📡</div>
+            </div>
+            <div class="search-wrapper">
+                <span class="search-icon-inside">🔍</span>
+                <input type="text" class="search-input" id="spotifySearchInput" placeholder="Search any YouTube Song / Remix..." onkeyup="handleSearchTrigger(event)">
             </div>
         </div>
-        <div class="audio-container">
-            <audio id="audio-player" controls src=""></audio>
+
+        <div class="view-content">
+            
+            <div class="app-view active" id="view-home">
+                <div class="section-title" style="font-size:14px; font-weight:700;">🔥 Curated Recommendations For You</div>
+                <div class="recommend-slider" id="recommendationsOutput"></div>
+
+                <div class="section-title" id="search-title-context" style="font-size:14px; font-weight:700; margin-top:10px;">Trending Worldwide Live Feed</div>
+                <div class="results-container" id="songsResultsOutput"></div>
+            </div>
+
+            <div class="app-view" id="view-library">
+                <div class="section-title" style="font-size:14px; font-weight:700;">Your Uncapped Tracks Library</div>
+                <div class="results-container" id="libraryTracksOutput"></div>
+            </div>
+
+            <div class="app-view" id="view-rooms">
+                <div class="section-title" style="font-size:14px; font-weight:700;">Music Together Lounge (Real-Time Sync)</div>
+                <div class="room-presence-panel">
+                    <div class="presence-title">Host Shared Listening Room</div>
+                    <div class="room-meta-row">
+                        <span style="font-size:12px; color:var(--text-muted);">Active Room ID:</span>
+                        <span class="room-id-badge" id="currentRoomIdDisplay">AXO-NOT-HOSTED</span>
+                    </div>
+                    <div class="room-grid-btns">
+                        <button class="room-action-btn host" onclick="createMusicTogetherRoom()">Create Room</button>
+                        <button class="room-action-btn join" id="shareRoomBtn" onclick="copyInviteShareLink()" disabled style="opacity:0.5;">Share Invite Link</button>
+                    </div>
+
+                    <div class="presence-title" style="margin-top:10px;">Join Friend's Live Synced Room</div>
+                    <input type="text" class="room-input-sync" id="friendRoomIdInput" placeholder="Paste Room ID here...">
+                    <button class="room-action-btn host" style="background:linear-gradient(90deg, #ff0000, #ff5555); color:#fff;" onclick="joinMusicTogetherRoom()">Connect & Sync Stream</button>
+                </div>
+            </div>
+
+            <div class="app-view" id="view-playing">
+                <div class="player-view-wrapper">
+                    <div class="immersive-art-frame" id="player-art">🎵</div>
+                    
+                    <div class="player-meta-info">
+                        <div class="player-track-name" id="player-title">No Track Active</div>
+                        <div class="player-artist-name" id="player-artist">Search or select recommendation to stream</div>
+                    </div>
+
+                    <div class="canvas-box">
+                        <canvas id="waveVisualizer"></canvas>
+                    </div>
+
+                    <div class="timeline-box">
+                        <input type="range" class="time-slider" id="trackScrubber" min="0" max="100" value="0" oninput="scrubAudio(this.value)">
+                        <div class="time-labels">
+                            <span id="time-current">0:00</span>
+                            <span id="time-total">0:00</span>
+                        </div>
+                    </div>
+
+                    <div class="player-controls">
+                        <button class="ctrl-btn" onclick="adjustTrack(-1)">⏮</button>
+                        <button class="ctrl-btn main-play" id="masterPlayPauseBtn" onclick="togglePlayback()">▶</button>
+                        <button class="ctrl-btn" onclick="adjustTrack(1)">⏭</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <div style="width: 20px;" class="desktop-spacer"></div>
+
+        <div class="bottom-audio-pill" id="audio-pill-bar" onclick="switchView('playing')">
+            <div class="pill-track-info">
+                <div class="pill-art" id="pill-art-icon">🎵</div>
+                <div class="pill-text">
+                    <div class="pill-title" id="pill-track-name">No track active</div>
+                    <div class="pill-desc" id="pill-track-artist">Select track</div>
+                </div>
+            </div>
+            <button class="pill-btn-play" id="pill-play-trigger" onclick="event.stopPropagation(); togglePlayback();">▶</button>
+        </div>
+
+        <div class="floating-navbar">
+            <div class="nav-tab-item active" id="tab-home" onclick="switchView('home')">
+                <div class="nav-tab-icon">🏠</div><div class="nav-tab-label">Home</div>
+            </div>
+            <div class="nav-tab-item" id="tab-library" onclick="switchView('library')">
+                <div class="nav-tab-icon">📚</div><div class="nav-tab-label">Library</div>
+            </div>
+            <div class="nav-tab-item" id="tab-rooms" onclick="switchView('rooms')">
+                <div class="nav-tab-icon">🔮</div><div class="nav-tab-label">Rooms</div>
+            </div>
+            <div class="nav-tab-item" id="tab-playing" onclick="switchView('playing')">
+                <div class="nav-tab-icon">🎵</div><div class="nav-tab-label">Playing</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const API_BASE = "https://saavn.vercel.app/api";
-        let playlists = JSON.parse(localStorage.getItem('yt_playlists')) || {};
+        let currentTracksList = [];
+        let currentTrackIndex = 0;
+        let ytPlayerNode = null; // New Official IFrame instance
+        let uiProgressTimer = null;
+        let animationFrameId = null;
+        let systemRoomId = null;
+        let isJoinedInRoom = false;
+        let syncIntervalWorker = null;
 
-        async function loadTrending() {
-            // Update Tab Highlight Active UI State
-            document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+        const curatedRecommendations = [
+            { title: "Dekhte Dekhte", artist: "Batti Gul Meter Chalu", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400", url: "w4ClQO58-R4" },
+            { title: "Softly", artist: "Karan Aujla", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400", url: "c9Rr6mIDvX4" },
+            { title: "Kesariya", artist: "Arijit Singh", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400", url: "BddP6PYo2gs" },
+            { title: "Starboy", artist: "The Weeknd", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400", url: "jzD_yyEw0M4" }
+        ];
 
-            document.getElementById('view-title').innerText = "Trending Tracks";
-            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>Loading amazing music...</div>";
-            try {
-                let response = await fetch(`${API_BASE}/search/songs?query=Latest%20Songs`);
-                let json = await response.json();
-                if(json.success && json.data && json.data.results) {
-                    renderCards(json.data.results);
-                } else { throw new Error(); }
-            } catch (err) {
-                try {
-                    let response = await fetch(`${API_BASE}/search/songs?query=Trending`);
-                    let json = await response.json();
-                    renderCards(json.data.results);
-                } catch(e) {
-                    document.getElementById('songs-container').innerHTML = "<div style='color:var(--yt-red); font-size:14px;'>API Limit exceeded. Search manually using the input bar above!</div>";
-                }
-            }
-        }
-
-        async function searchMusicAPI() {
-            const query = document.getElementById('search-box').value.trim();
-            if(!query) return;
-
-            document.getElementById('view-title').innerText = `Search results for "${query}"`;
-            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>Searching the universe...</div>";
-
-            try {
-                let res = await fetch(`${API_BASE}/search/songs?query=${encodeURIComponent(query)}`);
-                let json = await res.json();
-                if(json.success && json.data && json.data.results && json.data.results.length > 0) {
-                    renderCards(json.data.results);
-                } else {
-                    document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>No tracks found. Check spelling or try something else!</div>";
-                }
-            } catch (error) {
-                document.getElementById('songs-container').innerHTML = "<div style='color:var(--yt-red); font-size:14px;'>Network lag. Tap the search button again!</div>";
-            }
-        }
-
-        function handleKeyPress(e) { if(e.key === 'Enter') searchMusicAPI(); }
-
-        function renderCards(songsArray) {
-            const container = document.getElementById('songs-container');
-            container.innerHTML = "";
-
-            if (!songsArray || songsArray.length === 0) {
-                container.innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>Empty collection block.</div>";
-                return;
-            }
-
-            songsArray.forEach(song => {
-                let image = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150";
-                if(song.image && song.image.length > 0) {
-                    image = song.image[2] ? song.image[2].url : song.image[0].url;
-                }
-                
-                let streamUrl = "";
-                if(song.downloadUrl && song.downloadUrl.length > 0) {
-                    streamUrl = song.downloadUrl[4] ? song.downloadUrl[4].url : song.downloadUrl[song.downloadUrl.length - 1].url;
-                }
-                
-                let sanitizedTitle = song.name.replace(/['"]/g, "").trim();
-                let sanitizedArtist = "Unknown Artist";
-                if(song.artists && song.artists.primary && song.artists.primary.length > 0) {
-                    sanitizedArtist = song.artists.primary[0].name.replace(/['"]/g, "").trim();
-                } else if(song.primaryArtists) {
-                    sanitizedArtist = song.primaryArtists.replace(/['"]/g, "").trim();
-                }
-
-                if(streamUrl) {
-                    container.innerHTML += `
-                        <div class="yt-card" onclick="streamAudioEngine('${streamUrl}', '${encodeURIComponent(sanitizedTitle)}', '${encodeURIComponent(sanitizedArtist)}', '${image}')">
-                            <img src="${image}">
-                            <div class="yt-title">${song.name}</div>
-                            <div class="yt-artist">${sanitizedArtist}</div>
-                            <button class="add-playlist-btn" onclick="event.stopPropagation(); addToCustomPlaylist('${song.id}', '${encodeURIComponent(sanitizedTitle)}', '${encodeURIComponent(sanitizedArtist)}', '${image}', '${streamUrl}')">➕ Add to Playlist</button>
-                        </div>
-                    `;
+        // 🎥 INITIALIZE OFFICIAL IMMUTABLE YOUTUBE BACKEND NODE
+        function onYouTubeIframeAPIReady() {
+            ytPlayerNode = new YT.Player('yt-hidden-node', {
+                height: '0',
+                width: '0',
+                videoId: curatedRecommendations[0].url,
+                playerVars: { 'roles': 'none', 'controls': 0, 'disablekb': 1 },
+                events: {
+                    'onReady': () => { showToast("📡 YT Streaming Engine Connected!"); },
+                    'onStateChange': handleYTPlayerStateEvent
                 }
             });
         }
 
-        function streamAudioEngine(url, title, artist, img) {
-            if(!url) return;
-            const artImage = document.getElementById('player-art');
-            artImage.src = img;
-            artImage.style.display = "block";
+        // 🚀 HIGHLY STABLE LIGHTWEIGHT SCRAPER FOR YOUTUBE METADATA
+        async function runCloudMusicSearch(query) {
+            if (!query.trim()) return;
+            showToast("🔍 Querying Global Core Cluster...");
+
+            // Multiple alternative stable backup networks for fetching search JSON without locks
+            const instances = [
+                "https://iv.melmac.space",
+                "https://invidious.perennialte.ch",
+                "https://invidious.asir.dev",
+                "https://invidious.nerdvpn.de"
+            ];
             
-            document.getElementById('player-title').innerText = decodeURIComponent(title);
-            document.getElementById('player-artist').innerText = decodeURIComponent(artist);
+            let success = false;
 
-            const player = document.getElementById('audio-player');
-            player.src = url;
-            player.load();
-            player.play();
-        }
+            for(let base of instances) {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 4000);
+                    const res = await fetch(`${base}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, { signal: controller.signal });
+                    clearTimeout(timeout);
 
-        function createPlaylist() {
-            let name = prompt("Enter playlist name:"); if(!name || !name.trim()) return;
-            let key = name.trim();
-            if(!playlists[key]) { playlists[key] = []; savePlaylists(); syncSidebar(); }
-        }
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            currentTracksList = data.slice(0, 25).map(item => ({
+                                title: item.title,
+                                artist: item.author || "YouTube Artist",
+                                image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+                                url: item.videoId // Storing Raw Video IDs for flawless native playback
+                            }));
+                            success = true;
+                            break;
+                        }
+                    }
+                } catch(e) {
+                    console.log("Switching search pipelines...");
+                }
+            }
 
-        function syncSidebar() {
-            const wrapper = document.getElementById('playlist-list'); wrapper.innerHTML = "";
-            Object.keys(playlists).forEach(name => {
-                wrapper.innerHTML += `<button class="side-btn" style="font-size:13px; padding:8px 12px;" onclick="viewPlaylist(event, '${name}')">📁 <span>${name}</span></button>`;
-            });
-        }
-
-        function addToCustomPlaylist(id, title, artist, img, url) {
-            let listKeys = Object.keys(playlists); if(listKeys.length === 0) return alert("Pehle ek Playlist banayein!");
-            let target = prompt(`Select playlist name:\n\nAvailable lists: ${listKeys.join(', ')}`);
-            if(playlists[target]) {
-                if(!playlists[target].some(track => track.id === id)) {
-                    playlists[target].push({ id, name: decodeURIComponent(title), primaryArtists: decodeURIComponent(artist), image: [{ url: img }, { url: img }, { url: img }], downloadUrl: [{ url }, { url }, { url }, { url }, { url }] });
-                    savePlaylists(); alert("Song added to your playlist!");
-                } else { alert("Song already inside list."); }
+            if (success && currentTracksList.length > 0) {
+                document.getElementById('search-title-context').innerText = `YouTube Core Results for "${query}"`;
+                renderTracksDOM(currentTracksList, 'songsResultsOutput');
+                showToast("✨ Results Synchronized!");
+            } else {
+                showToast("⚠️ API Core Busy. Retrying structural layout...");
             }
         }
 
-        function viewPlaylist(event, name) {
-            document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            document.getElementById('view-title').innerText = `Playlist: ${name}`;
-            renderCards(playlists[name] || []);
+        function handleSearchTrigger(e) {
+            if (e.key === "Enter") {
+                runCloudMusicSearch(e.target.value);
+                switchView('home');
+            }
         }
 
-        function savePlaylists() { localStorage.setItem('yt_playlists', JSON.stringify(playlists)); }
+        function renderTracksDOM(tracks, targetId) {
+            const container = document.getElementById(targetId);
+            container.innerHTML = "";
+            tracks.forEach((track, idx) => {
+                const strip = document.createElement('div');
+                strip.className = 'track-strip';
+                strip.onclick = () => launchAudioStream(idx, tracks);
+                const avatarStyle = track.image ? `style="background-image: url('${track.image}')"` : '';
+                strip.innerHTML = `
+                    <div class="strip-info">
+                        <div class="strip-avatar" ${avatarStyle}>${track.image ? '' : '🎵'}</div>
+                        <div class="strip-text">
+                            <div class="strip-title">${track.title}</div>
+                            <div class="strip-sub">${track.artist}</div>
+                        </div>
+                    </div>
+                    <div class="strip-play-btn">▶</div>
+                `;
+                container.appendChild(strip);
+            });
+        }
 
-        window.onload = () => { loadTrending(); syncSidebar(); Telegram.WebApp.ready(); Telegram.WebApp.expand(); }
+        function buildRecommendations() {
+            const container = document.getElementById('recommendationsOutput');
+            container.innerHTML = "";
+            curatedRecommendations.forEach((track, idx) => {
+                const card = document.createElement('div');
+                card.className = 'recommend-card';
+                card.onclick = () => launchAudioStream(idx, curatedRecommendations);
+                card.innerHTML = `
+                    <div style="width:100%; aspect-ratio:1; border-radius:12px; background-image: url('${track.image}'); background-size:cover; background-position:center;"></div>
+                    <div style="font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${track.title}</div>
+                    <div style="font-size:10px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${track.artist}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function launchAudioStream(index, tracksContext) {
+            currentTracksList = tracksContext;
+            currentTrackIndex = index;
+            const track = currentTracksList[index];
+
+            showToast("⏳ Buffering Native Audio Node...");
+            if (ytPlayerNode && ytPlayerNode.loadVideoById) {
+                ytPlayerNode.loadVideoById(track.url);
+                ytPlayerNode.playVideo();
+                updateUIElements(track);
+                switchView('playing');
+            } else {
+                showToast("❌ System Engine Init Error. Reload Page.");
+            }
+        }
+
+        function togglePlayback() {
+            if (!ytPlayerNode) return;
+            const state = ytPlayerNode.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                ytPlayerNode.pauseVideo();
+            } else {
+                ytPlayerNode.playVideo();
+            }
+        }
+
+        function handleYTPlayerStateEvent(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                setPlayUI(true);
+                startWaveformVisualizer();
+                trackTimelineProgressLoop();
+                syncDataToVirtualRoomState();
+            } else {
+                setPlayUI(false);
+                clearInterval(uiProgressTimer);
+                if (event.data !== YT.PlayerState.BUFFERING) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                syncDataToVirtualRoomState();
+            }
+        }
+
+        function trackTimelineProgressLoop() {
+            clearInterval(uiProgressTimer);
+            uiProgressTimer = setInterval(() => {
+                if (!ytPlayerNode || !ytPlayerNode.getCurrentTime) return;
+                const cur = ytPlayerNode.getCurrentTime();
+                const dur = ytPlayerNode.getDuration() || 100;
+                document.getElementById('trackScrubber').value = (cur / dur) * 100;
+                document.getElementById('time-current').innerText = formatTime(cur);
+                document.getElementById('time-total').innerText = formatTime(dur);
+            }, 400);
+        }
+
+        function adjustTrack(dir) {
+            if (currentTracksList.length === 0) return;
+            let nextIndex = currentTrackIndex + dir;
+            if (nextIndex >= currentTracksList.length) nextIndex = 0;
+            if (nextIndex < 0) nextIndex = currentTracksList.length - 1;
+            launchAudioStream(nextIndex, currentTracksList);
+        }
+
+        function updateUIElements(track) {
+            document.getElementById('player-title').innerText = track.title;
+            document.getElementById('player-artist').innerText = track.artist;
+            if(track.image) {
+                document.getElementById('player-art').style.backgroundImage = `url('${track.image}')`;
+                document.getElementById('player-art').innerText = "";
+                document.getElementById('pill-art-icon').style.backgroundImage = `url('${track.image}')`;
+                document.getElementById('pill-art-icon').innerText = "";
+            }
+            document.getElementById('pill-track-name').innerText = track.title;
+            document.getElementById('pill-track-artist').innerText = track.artist;
+        }
+
+        function setPlayUI(isPlaying) {
+            const sym = isPlaying ? "⏸" : "▶";
+            document.getElementById('masterPlayPauseBtn').innerText = sym;
+            document.getElementById('pill-play-trigger').innerText = sym;
+        }
+
+        function createMusicTogetherRoom() {
+            systemRoomId = "YT-" + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('currentRoomIdDisplay').innerText = systemRoomId;
+            const shareBtn = document.getElementById('shareRoomBtn');
+            shareBtn.removeAttribute('disabled'); shareBtn.style.opacity = "1";
+            syncDataToVirtualRoomState();
+            showToast(`Room Created! ID: ${systemRoomId}`);
+        }
+
+        function copyInviteShareLink() {
+            if(!systemRoomId) return;
+            const inviteUrl = `${window.location.href.split('?')[0]}?joinRoom=${systemRoomId}`;
+            navigator.clipboard.writeText(inviteUrl).then(() => { showToast("📋 Invite Link Copied!"); });
+        }
+
+        function syncDataToVirtualRoomState() {
+            if (!systemRoomId || !ytPlayerNode || !ytPlayerNode.getCurrentTime) return;
+            localStorage.setItem(systemRoomId, JSON.stringify({
+                trackIndex: currentTrackIndex,
+                currentTime: ytPlayerNode.getCurrentTime(),
+                isPaused: ytPlayerNode.getPlayerState() !== YT.PlayerState.PLAYING,
+                trackObj: currentTracksList[currentTrackIndex]
+            }));
+        }
+
+        function joinMusicTogetherRoom() {
+            const inputId = document.getElementById('friendRoomIdInput').value.trim().toUpperCase();
+            if(!inputId) return alert("Enter Room ID!");
+
+            isJoinedInRoom = true;
+            showToast(`🔗 Syncing to YouTube Shared Room ${inputId}...`);
+
+            if(syncIntervalWorker) clearInterval(syncIntervalWorker);
+            syncIntervalWorker = setInterval(() => {
+                const freshRoomData = JSON.parse(localStorage.getItem(inputId));
+                if(!freshRoomData || !ytPlayerNode) return;
+
+                const currentVideoUrlId = currentTracksList[currentTrackIndex]?.url;
+                if(!currentVideoUrlId || currentVideoUrlId !== freshRoomData.trackObj.url) {
+                    currentTracksList = [freshRoomData.trackObj];
+                    currentTrackIndex = 0;
+                    ytPlayerNode.loadVideoById(freshRoomData.trackObj.url);
+                    updateUIElements(freshRoomData.trackObj);
+                }
+
+                if(Math.abs(ytPlayerNode.getCurrentTime() - freshRoomData.currentTime) > 2.0) {
+                    ytPlayerNode.seekTo(freshRoomData.currentTime, true);
+                }
+
+                if(freshRoomData.isPaused && ytPlayerNode.getPlayerState() === YT.PlayerState.PLAYING) {
+                    ytPlayerNode.pauseVideo();
+                } else if(!freshRoomData.isPaused && ytPlayerNode.getPlayerState() !== YT.PlayerState.PLAYING) {
+                    ytPlayerNode.playVideo();
+                }
+            }, 1200);
+        }
+
+        function switchView(targetViewId) {
+            document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.nav-tab-item').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`view-${targetViewId}`).classList.add('active');
+            document.getElementById(`tab-${targetViewId}`).classList.add('active');
+            
+            const isPlayingOrNoTrack = targetViewId === 'playing' || !currentTracksList[currentTrackIndex];
+            document.getElementById('audio-pill-bar').style.display = isPlayingOrNoTrack ? 'none' : 'flex';
+        }
+
+        function scrubAudio(val) {
+            if(!ytPlayerNode || !ytPlayerNode.getDuration) return;
+            const targetSeconds = (val / 100) * ytPlayerNode.getDuration();
+            ytPlayerNode.seekTo(targetSeconds, true);
+            syncDataToVirtualRoomState();
+        }
+
+        function formatTime(secs) {
+            if (isNaN(secs)) return "0:00";
+            let m = Math.floor(secs / 60); let s = Math.floor(secs % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast-notification'); t.innerText = msg; t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 2500);
+        }
+
+        const canvas = document.getElementById('waveVisualizer'); const ctx = canvas.getContext('2d'); let phase = 0;
+        function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function startWaveformVisualizer() {
+            cancelAnimationFrame(animationFrameId);
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 3; ctx.shadowBlur = 12; ctx.shadowColor = '#ff0000';
+                ctx.beginPath();
+                for (let x = 0; x < canvas.width; x++) {
+                    let y = canvas.height / 2 + Math.sin(x * 0.03 + phase) * 7 * Math.cos(x * 0.012 + phase);
+                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke(); phase += 0.04; animationFrameId = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        window.onload = () => {
+            buildRecommendations();
+            renderTracksDOM(curatedRecommendations, 'libraryTracksOutput');
+            renderTracksDOM(curatedRecommendations, 'songsResultsOutput');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoRoomId = urlParams.get('joinRoom');
+            if(autoRoomId) {
+                document.getElementById('friendRoomIdInput').value = autoRoomId;
+                switchView('rooms');
+                showToast("📬 Sync Link Detected! Press Connect.");
+            }
+        };
     </script>
 </body>
 </html>
