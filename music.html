@@ -132,7 +132,7 @@
     <div id="toast-notification">Connecting Axolotl Cluster...</div>
 
     <div style="position: absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;">
-        <audio id="tgSecureAudioEngine" playsinline prelaod="auto"></audio>
+        <audio id="tgSecureAudioEngine" playsinline preload="auto" crossorigin="anonymous"></audio>
     </div>
 
     <div class="app-container">
@@ -222,12 +222,12 @@
         let uiProgressTimer = null;
         let animationFrameId = null;
 
-        // Invidious proxies array ko optimize kiya stable endpoints ke saath
+        // Sandboxed Secure Proxy Clusters
         const proxyInstances = [
-            "https://iv.melmac.space",
             "https://invidious.perennialte.ch",
+            "https://iv.melmac.space",
             "https://invidious.nerdvpn.de",
-            "https://invidious.flokinet.to"
+            "https://inv.tux.digital"
         ];
 
         const curatedRecommendations = [
@@ -252,18 +252,21 @@
                     if (res.ok) {
                         const data = await res.json();
                         if (data && data.length > 0) {
-                            currentTracksList = data.slice(0, 25).map(item => ({
-                                title: item.title,
-                                artist: item.author || "YouTube Artist",
-                                image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-                                url: item.videoId,
-                                streamUrl: `${base}/latest_version?id=${item.videoId}&v=mp4`
-                            }));
+                            currentTracksList = data.slice(0, 25).map(item => {
+                                const id = item.videoId;
+                                return {
+                                    title: item.title,
+                                    artist: item.author || "YouTube Artist",
+                                    image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+                                    url: id,
+                                    streamUrl: `${base}/latest_version?id=${id}&v=mp4&quality=dash&local=true`
+                                };
+                            });
                             success = true;
                             break;
                         }
                     }
-                } catch(e) { console.error("Proxy error, trying next..."); }
+                } catch(e) { console.error("Proxy routing change..."); }
             }
 
             if (success && currentTracksList.length > 0) {
@@ -312,7 +315,7 @@
                 card.className = 'recommend-card';
                 card.onclick = () => {
                     const id = track.url || track.videoId;
-                    track.streamUrl = `${proxyInstances[0]}/latest_version?id=${id}&v=mp4`;
+                    track.streamUrl = `${proxyInstances[0]}/latest_version?id=${id}&v=mp4&quality=dash&local=true`;
                     launchAudioStream(idx, curatedRecommendations);
                 };
                 card.innerHTML = `
@@ -328,28 +331,42 @@
             currentTracksList = tracksContext;
             currentTrackIndex = index;
             const track = currentTracksList[index];
-            showToast("⏳ Bypassing Telegram Sandbox...");
+            showToast("⚡ Bypassing Sandbox...");
 
             const trackId = track.url || track.videoId;
-            if(!track.streamUrl) {
-                track.streamUrl = `${proxyInstances[0]}/latest_version?id=${trackId}&v=mp4`;
+            let primaryUrl = track.streamUrl;
+            
+            if(!primaryUrl || !primaryUrl.includes('local=true')) {
+                primaryUrl = `${proxyInstances[0]}/latest_version?id=${trackId}&v=mp4&quality=dash&local=true`;
             }
 
+            // Sandbox Flush State Core
             nativePlayer.pause();
-            nativePlayer.src = track.streamUrl;
-            nativePlayer.load();
+            nativePlayer.removeAttribute('src'); 
+            nativePlayer.load(); 
             
+            nativePlayer.src = primaryUrl;
+            nativePlayer.volume = 1.0;
+
             let playPromise = nativePlayer.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
                     handlePlaybackStart(track);
                 }).catch((err) => {
-                    // Failover logic optimized
-                    console.log("Primary proxy blocked, switching source...");
-                    nativePlayer.src = `${proxyInstances[1]}/latest_version?id=${trackId}&v=mp4`;
+                    console.log("Sandbox Block Triggered. Deploying Layer-2 Failover...");
+                    const secondaryUrl = `${proxyInstances[1]}/latest_version?id=${trackId}&v=mp4&quality=dash&local=true`;
+                    nativePlayer.src = secondaryUrl;
+                    
                     nativePlayer.play()
                         .then(() => handlePlaybackStart(track))
-                        .catch(() => showToast("❌ Sandbox Stream Blocked. Tap Play again."));
+                        .catch(() => {
+                            // Layer 3 Hard Proxy Route
+                            const tertiaryUrl = `${proxyInstances[2]}/latest_version?id=${trackId}&v=mp4&quality=dash&local=true`;
+                            nativePlayer.src = tertiaryUrl;
+                            nativePlayer.play()
+                                .then(() => handlePlaybackStart(track))
+                                .catch(() => showToast("❌ Sandbox Hard Blocked Server Asset. Try another track."));
+                        });
                 });
             }
         }
@@ -373,12 +390,12 @@
         }
 
         function togglePlayback(event) {
-            if(event) event.stopPropagation(); // Pill switch view bubble block karne ke liye
+            if(event) event.stopPropagation(); 
             if (nativePlayer.paused) {
                 nativePlayer.play().then(() => {
                     setPlayUI(true);
                     startWaveformVisualizer();
-                }).catch(() => showToast("⚠️ Playback trigger error"));
+                }).catch(() => showToast("⚠️ Playback interface restricted"));
             } else {
                 nativePlayer.pause();
                 setPlayUI(false);
