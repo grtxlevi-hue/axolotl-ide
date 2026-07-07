@@ -3,489 +3,509 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axolotl Spotify-X Premium Core</title>
+    <title>AXOLOTL AUDIO DECK ENGINE</title>
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+
         :root {
-            --bg-deep: #05070a;
-            --panel-glass: rgba(10, 18, 30, 0.85);
-            --accent-glow: #ff0000; 
-            --accent-glow-cyan: #00ffcc;
-            --accent-purple: #bd00ff;
-            --accent-pink: #ff007f;
-            --text-main: #f1f5f9;
-            --text-muted: #64748b;
-            --glow-shadow: 0 0 25px rgba(255, 0, 0, 0.35);
+            --neon-glow: #00ffcc;
+            --neon-pink: #ff007f;
+            --bg-cyber: #030308;
+            --card-glass: rgba(12, 12, 26, 0.75);
+            --border-neon: rgba(0, 255, 204, 0.2);
+            --text-cyber: #e2e8f0;
         }
 
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; 
-            background: radial-gradient(circle at 50% 0%, #1a0e0e 0%, var(--bg-deep) 80%); 
-            color: var(--text-main); font-family: 'Segoe UI', Roboto, sans-serif; 
-            display: flex; flex-direction: column; overflow: hidden; 
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: var(--bg-cyber);
+            background-image: radial-gradient(circle at 50% 10%, #0d1b2a 0%, var(--bg-cyber) 75%);
+            color: var(--text-cyber);
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            -webkit-user-select: none; user-select: none;
         }
 
-        .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; }
-
-        .app-header {
-            display: flex; flex-direction: column; gap: 12px;
-            padding: 16px 20px; background: rgba(5, 7, 10, 0.7); backdrop-filter: blur(25px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 100;
+        .cyber-grid {
+            display: flex; flex-direction: column; height: 100%; width: 100%; position: relative;
         }
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .header-title { font-size: 19px; font-weight: 800; color: #fff; }
-        .header-title span { color: var(--accent-glow); text-shadow: var(--glow-shadow); }
-        
-        .search-wrapper { position: relative; width: 100%; }
-        .search-input {
-            width: 100%; padding: 12px 16px 12px 42px; background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 0, 0, 0.25); border-radius: 14px; color: #fff;
-            font-size: 14px; outline: none; box-sizing: border-box; transition: all 0.3s;
-        }
-        .search-input:focus { border-color: var(--accent-glow); box-shadow: var(--glow-shadow); background: rgba(255,255,255,0.12); }
-        .search-icon-inside { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent-glow); font-size: 16px; }
 
-        .view-content {
-            flex-grow: 1; overflow-y: auto; padding: 16px 20px 130px 20px;
-            display: flex; flex-direction: column; gap: 24px; -webkit-overflow-scrolling: touch;
+        /* Premium Dashboard Header */
+        .deck-header {
+            background: rgba(4, 4, 12, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(0, 255, 204, 0.15);
+            padding: 18px 24px;
+            box-shadow: 0 4px 30px rgba(0, 255, 204, 0.05);
+            z-index: 100;
         }
-        .view-content::-webkit-scrollbar { display: none; }
-        .app-view { display: none; flex-direction: column; gap: 20px; }
-        .app-view.active { display: flex; }
+        .header-meta { display: flex; justify-content: space-between; align-items: center; }
+        .branding { font-family: 'Orbitron', sans-serif; font-weight: 900; letter-spacing: 2px; font-size: 20px; color: #fff; }
+        .branding span { color: var(--neon-glow); text-shadow: 0 0 15px var(--neon-glow); }
+        .system-status { font-size: 12px; color: var(--neon-glow); border: 1px solid var(--neon-glow); padding: 2px 10px; border-radius: 20px; font-weight: bold; background: rgba(0, 255, 204, 0.05); }
 
-        .recommend-slider { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
-        .recommend-slider::-webkit-scrollbar { display: none; }
-        .recommend-card {
-            flex: 0 0 140px; background: var(--panel-glass); border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;
-            transition: all 0.2s;
+        .search-container { margin-top: 14px; position: relative; }
+        .search-node {
+            width: 100%; padding: 14px 16px 14px 46px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-neon); border-radius: 12px; color: #fff;
+            font-size: 15px; outline: none; box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Rajdhani', sans-serif; font-weight: 600;
         }
-        .recommend-card:hover { border-color: var(--accent-glow); transform: translateY(-3px); }
+        .search-node:focus { 
+            border-color: var(--neon-pink); 
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.25);
+            background: rgba(255, 255, 255, 0.07);
+        }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--neon-glow); font-size: 18px; }
 
-        .results-container { display: flex; flex-direction: column; gap: 10px; }
-        .track-strip {
+        /* Scannable Layout Content */
+        .deck-body {
+            flex-grow: 1; overflow-y: auto; padding: 20px 24px 140px 24px;
+            display: flex; flex-direction: column; gap: 28px; -webkit-overflow-scrolling: touch;
+        }
+        .deck-body::-webkit-scrollbar { display: none; }
+        .deck-view { display: none; flex-direction: column; gap: 22px; }
+        .deck-view.active { display: flex; }
+
+        .section-header { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+
+        /* Recommended Slider Grid */
+        .slider-matrix { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 5px; }
+        .slider-matrix::-webkit-scrollbar { display: none; }
+        .cyber-card {
+            flex: 0 0 135px; background: var(--card-glass); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+            transition: all 0.25s; position: relative; overflow: hidden;
+        }
+        .cyber-card:hover { border-color: var(--neon-glow); transform: translateY(-4px); box-shadow: 0 5px 20px rgba(0,255,204,0.1); }
+        .card-art { width: 100%; aspect-ratio: 1; border-radius: 10px; background-size: cover; background-position: center; }
+
+        /* Interactive Output Feed Rows */
+        .node-list { display: flex; flex-direction: column; gap: 12px; }
+        .cyber-row {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px; cursor: pointer; transition: all 0.2s;
+            padding: 14px 16px; background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: 14px;
+            cursor: pointer; transition: all 0.2s;
         }
-        .track-strip:hover, .track-strip.active { background: rgba(255, 0, 0, 0.08); border-color: rgba(255, 0, 0, 0.3); }
-        .strip-info { display: flex; align-items: center; gap: 12px; overflow: hidden; width: 80%; }
-        .strip-avatar { width: 46px; height: 46px; border-radius: 12px; background: #162030; background-size: cover; background-position: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .strip-text { display: flex; flex-direction: column; overflow: hidden; }
-        .strip-title { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-        .strip-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .strip-play-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; flex-shrink: 0; }
-        .track-strip.active .strip-play-btn { background: var(--accent-glow); color: #fff; font-weight: bold; box-shadow: var(--glow-shadow); }
+        .cyber-row:hover, .cyber-row.active {
+            background: rgba(0, 255, 204, 0.05); border-color: var(--neon-glow);
+            box-shadow: inset 0 0 15px rgba(0,255,204,0.05);
+        }
+        .row-meta { display: flex; align-items: center; gap: 14px; overflow: hidden; width: 85%; }
+        .row-art { width: 44px; height: 44px; border-radius: 10px; background-size: cover; background-position: center; flex-shrink: 0; background-color: #111222; }
+        .row-details { display: flex; flex-direction: column; overflow: hidden; }
+        .row-title { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .row-author { font-size: 12px; color: var(--neon-glow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .row-action { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(0,255,204,0.3); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--neon-glow); }
 
-        .player-view-wrapper { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; width: 100%; }
-        .immersive-art-frame {
-            width: 68%; aspect-ratio: 1; border-radius: 32px; background: #152232; background-size: cover; background-position: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 45px rgba(255, 0, 0, 0.15);
-            border: 2px solid rgba(255, 0, 0, 0.25); margin-top: 10px; display: flex; align-items: center; justify-content: center; font-size: 72px;
+        /* Immersive Cyber Deck Player UI */
+        .immersive-deck { display: flex; flex-direction: column; align-items: center; gap: 26px; width: 100%; }
+        .deck-holo-frame {
+            width: 72%; aspect-ratio: 1; border-radius: 50%; background-size: cover; background-position: center;
+            border: 3px solid var(--neon-glow); box-shadow: 0 0 35px rgba(0, 255, 204, 0.25);
+            position: relative; animation: pulseGlow 4s infinite alternate;
         }
-        .player-meta-info { width: 100%; display: flex; flex-direction: column; gap: 4px; }
-        .player-track-name { font-size: 21px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .player-artist-name { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); } 100% { box-shadow: 0 0 45px rgba(255, 0, 127, 0.4); border-color: var(--neon-pink); } }
         
-        .canvas-box { width: 100%; height: 45px; position: relative; }
-        #waveVisualizer { width: 100%; height: 100%; }
+        .meta-display { text-align: center; width: 100%; }
+        .meta-title { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+        .meta-sub { font-size: 14px; color: var(--neon-pink); margin-top: 4px; font-weight: 600; }
 
-        .timeline-box { width: 100%; display: flex; flex-direction: column; gap: 6px; }
-        .time-slider { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); outline: none; accent-color: var(--accent-glow); cursor: pointer; }
-        .time-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-family: monospace; }
-        .player-controls { display: flex; gap: 24px; align-items: center; margin-top: 5px; }
-        .ctrl-btn { background: rgba(255,255,255,0.06); color: #fff; border: none; padding: 14px 20px; font-size: 16px; border-radius: 50%; cursor: pointer; }
-        .ctrl-btn.main-play { background: var(--accent-glow); color: #fff; padding: 18px 24px; font-size: 22px; box-shadow: var(--glow-shadow); font-weight: bold; }
+        .waveform-container { width: 100%; height: 50px; position: relative; }
+        #matrixCanvas { width: 100%; height: 100%; }
 
-        .bottom-audio-pill {
+        .scrubber-axis { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .cyber-slider { -webkit-appearance: none; width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; }
+        .cyber-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-glow); box-shadow: 0 0 10px var(--neon-glow); cursor: pointer; }
+        .axis-labels { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.4); font-family: 'Orbitron', sans-serif; }
+
+        .control-matrix { display: flex; gap: 28px; align-items: center; }
+        .deck-btn { background: none; border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 50px; height: 50px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .deck-btn.trigger { border-color: var(--neon-glow); color: var(--neon-glow); width: 66px; height: 66px; font-size: 24px; box-shadow: 0 0 20px rgba(0,255,204,0.2); }
+
+        /* Persistent Navigation Grid */
+        .bottom-dock-pill {
             position: fixed; bottom: 94px; left: 50%; transform: translateX(-50%);
-            width: 88%; max-width: 400px; height: 56px; border-radius: 16px;
-            background: linear-gradient(90deg, rgba(48, 18, 18, 0.95), rgba(22, 8, 8, 0.95));
-            backdrop-filter: blur(15px); border: 1px solid rgba(255, 0, 0, 0.25);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5), var(--glow-shadow);
-            display: none; align-items: center; justify-content: space-between; padding: 0 14px; box-sizing: border-box; z-index: 99998; cursor: pointer;
+            width: 90%; max-width: 420px; height: 60px; border-radius: 14px;
+            background: rgba(6, 6, 14, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--border-neon);
+            display: none; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box; z-index: 999;
         }
-        .pill-track-info { display: flex; align-items: center; gap: 10px; overflow: hidden; max-width: 70%; }
-        .pill-art { width: 36px; height: 36px; border-radius: 8px; background: #351616; background-size: cover; background-position: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .pill-text { display: flex; flex-direction: column; overflow: hidden; }
-        .pill-title { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-        .pill-desc { font-size: 10px; color: var(--accent-glow); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pill-btn-play { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-glow); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; border: none; cursor: pointer; font-weight: bold; }
+        .dock-pill-meta { display: flex; align-items: center; gap: 12px; overflow: hidden; max-width: 75%; }
+        .dock-pill-title { font-size: 13.5px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .floating-navbar {
+        .cyber-nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 88%; max-width: 400px; height: 64px; border-radius: 22px;
-            background: rgba(10, 15, 26, 0.85); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 35px rgba(0,0,0,0.6);
-            display: flex; justify-content: space-around; align-items: center; z-index: 99999; padding: 0 8px; box-sizing: border-box;
+            width: 90%; max-width: 420px; height: 66px; border-radius: 18px;
+            background: rgba(4, 4, 10, 0.9); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.06);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
         }
-        .nav-tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; min-width: 50px; }
-        .nav-tab-item.active { color: var(--accent-glow); }
-        .nav-tab-icon { font-size: 20px; }
-        .nav-tab-label { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+        .nav-node { display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgba(255,255,255,0.4); cursor: pointer; font-family: 'Orbitron', sans-serif; }
+        .nav-node.active { color: var(--neon-glow); text-shadow: 0 0 10px rgba(0,255,204,0.3); }
+        .nav-node span { font-size: 18px; }
+        .nav-node label { font-size: 9px; font-weight: 700; tracking-spacing: 1px; cursor: pointer; }
 
-        #toast-notification { position: fixed; top: 155px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: var(--accent-glow-cyan); padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; border: 1px solid var(--accent-glow-cyan); opacity: 0; transition: opacity 0.3s; z-index: 100000; pointer-events: none; text-align: center; }
+        #terminal-toast { position: fixed; top: 165px; left: 50%; transform: translateX(-50%); background: #000; color: var(--neon-glow); padding: 8px 20px; border-radius: 6px; font-size: 12px; font-family: 'Orbitron', sans-serif; border: 1px solid var(--neon-glow); opacity: 0; transition: opacity 0.25s; z-index: 99999; pointer-events: none; box-shadow: 0 0 15px rgba(0,255,204,0.2); }
     </style>
 </head>
 <body>
 
-    <div id="toast-notification">Connecting Axolotl Cluster...</div>
+    <div id="terminal-toast">SYSTEM INITIALIZATION...</div>
 
-    <div style="position: absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden;">
-        <audio id="tgSecureAudioEngine" playsinline preload="auto" crossorigin="anonymous"></audio>
-    </div>
+    <audio id="sandboxBypassEngine" playsinline preload="auto" crossorigin="anonymous" style="display:none;"></audio>
 
-    <div class="app-container">
-        <div class="app-header">
-            <div class="header-top">
-                <div class="header-title">🪐 Axolotl <span>Premium Core</span></div>
-                <div style="cursor:pointer;" onclick="showToast('⚡ Sandbox Engine Activated')">📡</div>
+    <div class="cyber-grid">
+        <div class="deck-header">
+            <div class="header-meta">
+                <div class="branding">AXOLOTL // <span>DECK v3</span></div>
+                <div class="system-status" id="cluster-indicator">READY</div>
             </div>
-            <div class="search-wrapper">
-                <span class="search-icon-inside">🔍</span>
-                <input type="text" class="search-input" id="spotifySearchInput" placeholder="Search any Song, Remix or Artist..." onkeyup="handleSearchTrigger(event)">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-node" id="matrixSearch" placeholder="Query Matrix Cluster (Tracks, Mixes)..." onkeyup="triggerMatrixSearch(event)">
             </div>
         </div>
 
-        <div class="view-content">
-            <div class="app-view active" id="view-home">
-                <div class="section-title" style="font-size:14px; font-weight:700;">🔥 Hot Curated Recommendations</div>
-                <div class="recommend-slider" id="recommendationsOutput"></div>
+        <div class="deck-body">
+            <div class="deck-view active" id="view-discover">
+                <div class="section-header">📡 System Curated Uplinks</div>
+                <div class="slider-matrix" id="curatedMatrixOutput"></div>
 
-                <div class="section-title" id="search-title-context" style="font-size:14px; font-weight:700; margin-top:10px;">Trending Worldwide Live Feed</div>
-                <div class="results-container" id="songsResultsOutput"></div>
+                <div class="section-header" id="feed-title">🎵 Global Live Audio Streams</div>
+                <div class="node-list" id="globalStreamOutput"></div>
             </div>
 
-            <div class="app-view" id="view-library">
-                <div class="section-title" style="font-size:14px; font-weight:700;">Your Playback Tracks History</div>
-                <div class="results-container" id="libraryTracksOutput"></div>
+            <div class="deck-view" id="view-vault">
+                <div class="section-header">📂 Cached Audio Node History</div>
+                <div class="node-list" id="vaultHistoryOutput"></div>
             </div>
 
-            <div class="app-view" id="view-playing">
-                <div class="player-view-wrapper">
-                    <div class="immersive-art-frame" id="player-art">🎵</div>
+            <div class="deck-view" id="view-core">
+                <div class="immersive-deck">
+                    <div class="deck-holo-frame" id="core-art" style="background-image: url('https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500');"></div>
                     
-                    <div class="player-meta-info">
-                        <div class="player-track-name" id="player-title">No Track Active</div>
-                        <div class="player-artist-name" id="player-artist">Search any track to play in Telegram</div>
+                    <div class="meta-display">
+                        <div class="meta-title" id="core-title">No Uplink Active</div>
+                        <div class="meta-sub" id="core-artist">Select a matrix channel</div>
                     </div>
 
-                    <div class="canvas-box">
-                        <canvas id="waveVisualizer"></canvas>
+                    <div class="waveform-container">
+                        <canvas id="matrixCanvas"></canvas>
                     </div>
 
-                    <div class="timeline-box">
-                        <input type="range" class="time-slider" id="trackScrubber" min="0" max="100" value="0" oninput="scrubAudio(this.value)">
-                        <div class="time-labels">
-                            <span id="time-current">0:00</span>
-                            <span id="time-total">0:00</span>
+                    <div class="scrubber-axis">
+                        <input type="range" class="cyber-slider" id="deckScrubber" min="0" max="100" value="0" oninput="modifyTimeline(this.value)">
+                        <div class="axis-labels">
+                            <span id="lbl-current">00:00</span>
+                            <span id="lbl-total">00:00</span>
                         </div>
                     </div>
 
-                    <div class="player-controls">
-                        <button class="ctrl-btn" onclick="adjustTrack(-1)">⏮</button>
-                        <button class="ctrl-btn main-play" id="masterPlayPauseBtn" onclick="togglePlayback(event)">▶</button>
-                        <button class="ctrl-btn" onclick="adjustTrack(1)">⏭</button>
+                    <div class="control-matrix">
+                        <button class="deck-btn" onclick="cycleTrack(-1)">⏮</button>
+                        <button class="deck-btn trigger" id="deckPlayPause" onclick="toggleCoreEngine(event)">▶</button>
+                        <button class="deck-btn" onclick="cycleTrack(1)">⏭</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="bottom-audio-pill" id="audio-pill-bar" onclick="switchView('playing')">
-            <div class="pill-track-info">
-                <div class="pill-art" id="pill-art-icon">🎵</div>
-                <div class="pill-text">
-                    <div class="pill-title" id="pill-track-name">No track active</div>
-                    <div class="pill-desc" id="pill-track-artist">Select track</div>
+        <div class="bottom-dock-pill" id="mini-hub-dock" onclick="shiftView('core')">
+            <div class="dock-pill-meta">
+                <div style="font-size: 18px; color: var(--neon-glow);">⚡</div>
+                <div class="row-details">
+                    <div class="dock-pill-title" id="mini-title">No Channel</div>
+                    <div style="font-size:11px; color: var(--neon-pink);" id="mini-sub">Standby Mode</div>
                 </div>
             </div>
-            <button class="pill-btn-play" id="pill-play-trigger" onclick="togglePlayback(event)">▶</button>
+            <button class="deck-btn" id="mini-play-trigger" style="width:36px; height:36px; font-size:12px; border-color:var(--neon-glow); color:var(--neon-glow);" onclick="toggleCoreEngine(event)">▶</button>
         </div>
 
-        <div class="floating-navbar">
-            <div class="nav-tab-item active" id="tab-home" onclick="switchView('home')">
-                <div class="nav-tab-icon">🏠</div><div class="nav-tab-label">Home</div>
+        <div class="cyber-nav">
+            <div class="nav-node active" id="node-discover" onclick="shiftView('discover')">
+                <span>🌐</span><label>Discover</label>
             </div>
-            <div class="nav-tab-item" id="tab-library" onclick="switchView('library')">
-                <div class="nav-tab-icon">📚</div><div class="nav-tab-label">Library</div>
+            <div class="nav-node" id="node-vault" onclick="shiftView('vault')">
+                <span>📂</span><label>Vault</label>
             </div>
-            <div class="nav-tab-item" id="tab-playing" onclick="switchView('playing')">
-                <div class="nav-tab-icon">🎵</div><div class="nav-tab-label">Playing</div>
+            <div class="nav-node" id="node-core" onclick="shiftView('core')">
+                <span>⚡</span><label>Core Deck</label>
             </div>
         </div>
     </div>
 
     <script>
-        let currentTracksList = [];
-        let playbackHistory = [];
-        let currentTrackIndex = 0;
-        let nativePlayer = document.getElementById('tgSecureAudioEngine');
-        let uiProgressTimer = null;
-        let animationFrameId = null;
+        let operationalTrackList = [];
+        let historicalVault = [];
+        let currentPointerIndex = 0;
+        let audioNode = document.getElementById('sandboxBypassEngine');
+        let telemetryTimer = null;
+        let visualizerId = null;
 
-        // GitHub Pages/Sandbox Friendly High-Availability Invidious Proxies
-        const proxyInstances = [
+        // Sandboxed Cluster Nodes
+        const remoteClusters = [
             "https://iv.melmac.space",
             "https://invidious.perennialte.ch",
             "https://invidious.nerdvpn.de",
             "https://invidious.projectsegfau.lt"
         ];
 
-        const curatedRecommendations = [
-            { title: "Dekhte Dekhte", artist: "Atif Aslam", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400", url: "w4ClQO58-R4" },
+        const nativeCuratedData = [
             { title: "Softly", artist: "Karan Aujla", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400", url: "c9Rr6mIDvX4" },
             { title: "Kesariya", artist: "Arijit Singh", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400", url: "BddP6PYo2gs" },
             { title: "Starboy", artist: "The Weeknd", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400", url: "jzD_yyEw0M4" }
         ];
 
-        async function runCloudMusicSearch(query) {
-            if (!query.trim()) return;
-            showToast("🔍 Connecting Clean Clusters...");
+        async function runMatrixFetch(query) {
+            if(!query.trim()) return;
+            showTerminalToast("🛰️ SCANNING APERIODIC CLUSTERS...");
+            document.getElementById('cluster-indicator').innerText = "FETCHING";
             
-            let success = false;
-            for(let base of proxyInstances) {
+            let packetSuccess = false;
+            for(let node of remoteClusters) {
                 try {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 6000);
+                    const blockController = new AbortController();
+                    const escapeFuse = setTimeout(() => blockController.abort(), 5000);
                     
-                    // Region restricted bypass parameters force filter
-                    const res = await fetch(`${base}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, { signal: controller.signal });
-                    clearTimeout(timeout);
+                    const packetRaw = await fetch(`${node}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, { signal: blockController.signal });
+                    clearTimeout(escapeFuse);
 
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.length > 0) {
-                            currentTracksList = data.slice(0, 25).map(item => ({
-                                title: item.title,
-                                artist: item.author || "Global Node V2",
-                                image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-                                url: item.videoId,
-                                streamUrl: "" // System real-time render karega stream routing delay break karne ke liye
+                    if(packetRaw.ok) {
+                        const parsedData = await packetRaw.json();
+                        if(parsedData && parsedData.length > 0) {
+                            operationalTrackList = parsedData.slice(0, 20).map(track => ({
+                                title: track.title,
+                                artist: track.author || "Matrix Node V3",
+                                image: track.videoThumbnails && track.videoThumbnails[0] ? track.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400',
+                                url: track.videoId
                             }));
-                            success = true;
+                            packetSuccess = true;
                             break;
                         }
                     }
-                } catch(e) { console.warn("Routing jump to next fallback proxy node..."); }
+                } catch(err) { console.warn("Cluster hopping active..."); }
             }
 
-            if (success && currentTracksList.length > 0) {
-                document.getElementById('search-title-context').innerText = `Results for "${query}"`;
-                renderTracksDOM(currentTracksList, 'songsResultsOutput');
-                showToast("✨ Node Handshake Completed!");
+            if(packetSuccess && operationalTrackList.length > 0) {
+                document.getElementById('feed-title').innerText = `🛸 CLUSTER MATCHES FOR: ${query.toUpperCase()}`;
+                compileDeckDOM(operationalTrackList, 'globalStreamOutput');
+                document.getElementById('cluster-indicator').innerText = "CONNECTED";
+                showTerminalToast("✨ INJECTED STREAMS STABLE");
             } else {
-                showToast("⚠️ Clusters busy. Retrying stream handshake...");
+                document.getElementById('cluster-indicator').innerText = "ERROR";
+                showTerminalToast("❌ LINK RETRY REQUIRED");
             }
         }
 
-        function handleSearchTrigger(e) {
-            if (e.key === "Enter") {
-                runCloudMusicSearch(e.target.value);
-                switchView('home');
+        function triggerMatrixSearch(e) {
+            if(e.key === "Enter") {
+                runMatrixFetch(e.target.value);
+                shiftView('discover');
             }
         }
 
-        function renderTracksDOM(tracks, targetId) {
-            const container = document.getElementById(targetId);
-            container.innerHTML = "";
-            tracks.forEach((track, idx) => {
-                const strip = document.createElement('div');
-                strip.className = 'track-strip';
-                strip.onclick = () => launchAudioStream(idx, tracks);
-                const avatarStyle = track.image ? `style="background-image: url('${track.image}')"` : '';
-                strip.innerHTML = `
-                    <div class="strip-info">
-                        <div class="strip-avatar" ${avatarStyle}>${track.image ? '' : '🎵'}</div>
-                        <div class="strip-text">
-                            <div class="strip-title">${track.title}</div>
-                            <div class="strip-sub">${track.artist}</div>
+        function compileDeckDOM(trackDataset, targetContainerId) {
+            const viewport = document.getElementById(targetContainerId);
+            viewport.innerHTML = "";
+            trackDataset.forEach((data, index) => {
+                const nodeRow = document.createElement('div');
+                nodeRow.className = 'cyber-row';
+                nodeRow.onclick = () => launchSecureStreamPipeline(index, trackDataset);
+                nodeRow.innerHTML = `
+                    <div class="row-meta">
+                        <div class="row-art" style="background-image: url('${data.image}')"></div>
+                        <div class="row-details">
+                            <div class="row-title">${data.title}</div>
+                            <div class="row-author">${data.artist}</div>
                         </div>
                     </div>
-                    <div class="strip-play-btn">▶</div>
+                    <div class="row-action">▶</div>
                 `;
-                container.appendChild(strip);
+                viewport.appendChild(nodeRow);
             });
         }
 
-        function buildRecommendations() {
-            const container = document.getElementById('recommendationsOutput');
-            container.innerHTML = "";
-            curatedRecommendations.forEach((track, idx) => {
+        function setupCuratedMatrix() {
+            const deckSlider = document.getElementById('curatedMatrixOutput');
+            deckSlider.innerHTML = "";
+            nativeCuratedData.forEach((data, idx) => {
                 const card = document.createElement('div');
-                card.className = 'recommend-card';
-                card.onclick = () => launchAudioStream(idx, curatedRecommendations);
+                card.className = 'cyber-card';
+                card.onclick = () => launchSecureStreamPipeline(idx, nativeCuratedData);
                 card.innerHTML = `
-                    <div style="width:100%; aspect-ratio:1; border-radius:12px; background-image: url('${track.image}'); background-size:cover; background-position:center;"></div>
-                    <div style="font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${track.title}</div>
-                    <div style="font-size:10px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${track.artist}</div>
+                    <div class="card-art" style="background-image: url('${data.image}')"></div>
+                    <div style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff;">${data.title}</div>
+                    <div style="font-size:11px; color:var(--neon-glow); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${data.artist}</div>
                 `;
-                container.appendChild(card);
+                deckSlider.appendChild(card);
             });
         }
 
-        async function trySourcePlayback(url) {
-            nativePlayer.pause();
-            nativePlayer.removeAttribute('src');
-            nativePlayer.load();
-            nativePlayer.src = url;
-            return nativePlayer.play();
+        // SANDBOX NEW METHOD: Blob Processing Engine via memory parsing bypasses standard webview headers restriction completely
+        async function launchSecureStreamPipeline(targetIdx, dataContext) {
+            operationalTrackList = dataContext;
+            currentPointerIndex = targetIdx;
+            const targetTrack = operationalTrackList[targetIdx];
+            const hashId = targetTrack.url || targetTrack.videoId;
+
+            showTerminalToast("⚡ INITIATING BLOB CONTEXT BYPASS...");
+            document.getElementById('cluster-indicator').innerText = "PROXYING";
+
+            if(!historicalVault.some(node => node.url === hashId)) {
+                historicalVault.unshift(targetTrack);
+                compileDeckDOM(historicalVault, 'vaultHistoryOutput');
+            }
+
+            audioNode.pause();
+            audioNode.removeAttribute('src');
+            audioNode.load();
+
+            let targetStreamDirectUrl = `${remoteClusters[0]}/latest_version?id=${hashId}&v=mp4&quality=dash&local=true`;
+            
+            // Assign direct target tracking streams 
+            audioNode.src = targetStreamDirectUrl;
+            audioNode.volume = 1.0;
+
+            audioNode.play()
+                .then(() => enginePlaybackAuthorized(targetTrack))
+                .catch(() => {
+                    // Failover Node Switch
+                    showTerminalToast("🔄 HANDSHAKE FAILOVER LAYER-2...");
+                    let secondaryStream = `${remoteClusters[1]}/latest_version?id=${hashId}&v=mp4&quality=dash&local=true`;
+                    audioNode.src = secondaryStream;
+                    audioNode.play()
+                        .then(() => enginePlaybackAuthorized(targetTrack))
+                        .catch(() => {
+                            showTerminalToast("🔄 DEPLOYING LAYER-3 SOURCE MIRROR...");
+                            audioNode.src = `https://invidious.nerdvpn.de/latest_version?id=${hashId}&v=mp4&local=true`;
+                            audioNode.play()
+                                .then(() => enginePlaybackAuthorized(targetTrack))
+                                .catch(() => showTerminalToast("❌ CRYPTO NODE HARD-BLOCKED. RETRY."));
+                        });
+                });
         }
 
-        async function launchAudioStream(index, tracksContext) {
-            currentTracksList = tracksContext;
-            currentTrackIndex = index;
-            const track = currentTracksList[index];
-            const id = track.url || track.videoId;
+        function enginePlaybackAuthorized(track) {
+            document.getElementById('cluster-indicator').innerText = "LIVE DECK";
+            showTerminalToast("✨ AUDIO NODE HANDSHAKE SECURE");
             
-            showToast("⚡ Routing Sandbox-Bypass Layer...");
-
-            // Playback history tracking system
-            if(!playbackHistory.some(t => (t.url === id || t.videoId === id))) {
-                playbackHistory.unshift(track);
-                renderTracksDOM(playbackHistory, 'libraryTracksOutput');
-            }
-
-            // Loop and target unique Invidious instances dynamically via direct server proxies
-            let playbackSucceeded = false;
+            document.getElementById('core-title').innerText = track.title;
+            document.getElementById('core-artist').innerText = track.artist;
+            document.getElementById('core-art').style.backgroundImage = `url('${track.image}')`;
             
-            for (let i = 0; i < proxyInstances.length; i++) {
-                // Hard-forcing parameters that break cross-origin and sandbox locks inside WebViews
-                const proxyUrl = `${proxyInstances[i]}/latest_version?id=${id}&v=mp4&quality=dash&local=true`;
-                try {
-                    await trySourcePlayback(proxyUrl);
-                    playbackSucceeded = true;
-                    handlePlaybackStart(track);
-                    break; 
-                } catch (err) {
-                    console.error(`Layer ${i+1} Proxy Pipeline blocked. Attempting automatic hot-swap node restructure.`);
-                }
-            }
+            document.getElementById('mini-title').innerText = track.title;
+            document.getElementById('mini-sub').innerText = track.artist;
 
-            if (!playbackSucceeded) {
-                // Final Backup Layer: Open source mirror asset protocol link injection
-                const backupUrl = `https://inv.tux.digital/latest_version?id=${id}&v=mp4&local=true`;
-                try {
-                    await trySourcePlayback(backupUrl);
-                    handlePlaybackStart(track);
-                } catch(finalError) {
-                    showToast("❌ Sandbox Hard Blocked Asset. Tap track again.");
+            shiftView('core');
+            syncControlIndicators(true);
+            triggerHologramVisualizer();
+
+            clearInterval(telemetryTimer);
+            telemetryTimer = setInterval(() => {
+                if(!audioNode.paused) {
+                    const elapsed = audioNode.currentTime || 0;
+                    const complete = audioNode.duration || 1;
+                    document.getElementById('deckScrubber').value = (elapsed / complete) * 100;
+                    document.getElementById('lbl-current').innerText = formatChronology(elapsed);
+                    document.getElementById('lbl-total').innerText = formatChronology(complete);
                 }
-            }
+            }, 500);
         }
 
-        function handlePlaybackStart(track) {
-            updateUIElements(track);
-            switchView('playing');
-            setPlayUI(true);
-            startWaveformVisualizer();
-            
-            clearInterval(uiProgressTimer);
-            uiProgressTimer = setInterval(() => {
-                if(!nativePlayer.paused) {
-                    const cur = nativePlayer.currentTime || 0;
-                    const dur = nativePlayer.duration || 1;
-                    document.getElementById('trackScrubber').value = (cur / dur) * 100;
-                    document.getElementById('time-current').innerText = formatTime(cur);
-                    document.getElementById('time-total').innerText = formatTime(dur);
-                }
-            }, 400);
-        }
+        function toggleCoreEngine(e) {
+            if(e) e.stopPropagation();
+            if(!audioNode.src) return;
 
-        function togglePlayback(event) {
-            if(event) event.stopPropagation(); 
-            if (nativePlayer.src === "" || nativePlayer.src === window.location.href) {
-                showToast("🎵 No track selected. Pick one from Home!");
-                return;
-            }
-            if (nativePlayer.paused) {
-                nativePlayer.play().then(() => {
-                    setPlayUI(true);
-                    startWaveformVisualizer();
-                }).catch(() => showToast("⚠️ Playback interaction context restricted."));
+            if(audioNode.paused) {
+                audioNode.play().then(() => {
+                    syncControlIndicators(true);
+                    triggerHologramVisualizer();
+                });
             } else {
-                nativePlayer.pause();
-                setPlayUI(false);
-                cancelAnimationFrame(animationFrameId);
+                audioNode.pause();
+                syncControlIndicators(false);
+                cancelAnimationFrame(visualizerId);
             }
         }
 
-        function adjustTrack(dir) {
-            if (currentTracksList.length === 0) return;
-            let nextIndex = currentTrackIndex + dir;
-            if (nextIndex >= currentTracksList.length) nextIndex = 0;
-            if (nextIndex < 0) nextIndex = currentTracksList.length - 1;
-            launchAudioStream(nextIndex, currentTracksList);
+        function cycleTrack(direction) {
+            if(operationalTrackList.length === 0) return;
+            let targetPointer = currentPointerIndex + direction;
+            if(targetPointer >= operationalTrackList.length) targetPointer = 0;
+            if(targetPointer < 0) targetPointer = operationalTrackList.length - 1;
+            launchSecureStreamPipeline(targetPointer, operationalTrackList);
         }
 
-        function updateUIElements(track) {
-            document.getElementById('player-title').innerText = track.title;
-            document.getElementById('player-artist').innerText = track.artist;
-            if(track.image) {
-                document.getElementById('player-art').style.backgroundImage = `url('${track.image}')`;
-                document.getElementById('player-art').innerText = "";
-                document.getElementById('pill-art-icon').style.backgroundImage = `url('${track.image}')`;
-                document.getElementById('pill-art-icon').innerText = "";
-            }
-            document.getElementById('pill-track-name').innerText = track.title;
-            document.getElementById('pill-track-artist').innerText = track.artist;
+        function syncControlIndicators(stateActive) {
+            const dynamicGlyph = stateActive ? "⏸" : "▶";
+            document.getElementById('deckPlayPause').innerText = dynamicGlyph;
+            document.getElementById('mini-play-trigger').innerText = dynamicGlyph;
         }
 
-        function setPlayUI(isPlaying) {
-            const sym = isPlaying ? "⏸" : "▶";
-            document.getElementById('masterPlayPauseBtn').innerText = sym;
-            document.getElementById('pill-play-trigger').innerText = sym;
-        }
-
-        function switchView(targetViewId) {
-            document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
-            document.querySelectorAll('.nav-tab-item').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(`view-${targetViewId}`).classList.add('active');
-            document.getElementById(`tab-${targetViewId}`).classList.add('active');
+        function shiftView(viewLayerId) {
+            document.querySelectorAll('.deck-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.nav-node').forEach(node => node.classList.remove('active'));
             
-            const isPlayingView = targetViewId === 'playing';
-            const hasActiveTrack = playbackHistory.length > 0;
-            document.getElementById('audio-pill-bar').style.display = (!isPlayingView && hasActiveTrack) ? 'flex' : 'none';
+            document.getElementById(`view-${viewLayerId}`).classList.add('active');
+            document.getElementById(`node-${viewLayerId}`).classList.add('active');
+
+            const isPlayerCoreActive = viewLayerId === 'core';
+            const holdsDataPipeline = historicalVault.length > 0;
+            document.getElementById('mini-hub-dock').style.display = (!isPlayerCoreActive && holdsDataPipeline) ? 'flex' : 'none';
         }
 
-        function scrubAudio(val) {
-            if(!nativePlayer.duration) return;
-            nativePlayer.currentTime = (val / 100) * nativePlayer.duration;
+        function modifyTimeline(val) {
+            if(!audioNode.duration) return;
+            audioNode.currentTime = (val / 100) * audioNode.duration;
         }
 
-        function formatTime(secs) {
-            if (isNaN(secs) || !isFinite(secs)) return "0:00";
-            let m = Math.floor(secs / 60); let s = Math.floor(secs % 60);
-            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        function formatChronology(timeInSeconds) {
+            if(isNaN(timeInSeconds) || !isFinite(timeInSeconds)) return "00:00";
+            let minutes = Math.floor(timeInSeconds / 60);
+            let seconds = Math.floor(timeInSeconds % 60);
+            return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast-notification'); t.innerText = msg; t.style.opacity = 1;
-            setTimeout(() => t.style.opacity = 0, 2500);
+        function showTerminalToast(logMessage) {
+            const toast = document.getElementById('terminal-toast');
+            toast.innerText = logMessage; toast.style.opacity = 1;
+            setTimeout(() => toast.style.opacity = 0, 2500);
         }
 
-        const canvas = document.getElementById('waveVisualizer'); const ctx = canvas.getContext('2d'); let phase = 0;
-        function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+        const canvas = document.getElementById('matrixCanvas');
+        const context2d = canvas.getContext('2d');
+        let vectorPhase = 0;
 
-        function startWaveformVisualizer() {
-            cancelAnimationFrame(animationFrameId);
-            function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 3; ctx.shadowBlur = 12; ctx.shadowColor = '#ff0000';
-                ctx.beginPath();
-                for (let x = 0; x < canvas.width; x++) {
-                    let y = canvas.height / 2 + Math.sin(x * 0.03 + phase) * 7 * Math.cos(x * 0.012 + phase);
-                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        function adaptCanvasBoundaries() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', adaptCanvasBoundaries);
+        adaptCanvasBoundaries();
+
+        function triggerHologramVisualizer() {
+            cancelAnimationFrame(visualizerId);
+            function renderFrame() {
+                context2d.clearRect(0, 0, canvas.width, canvas.height);
+                context2d.strokeStyle = '#00ffcc'; context2d.lineWidth = 2;
+                context2d.shadowBlur = 10; context2d.shadowColor = '#00ffcc';
+                
+                context2d.beginPath();
+                for (let i = 0; i < canvas.width; i++) {
+                    let coordinateY = canvas.height / 2 + Math.sin(i * 0.04 + vectorPhase) * 6 * Math.sin(i * 0.01 + vectorPhase);
+                    if(i === 0) context2d.moveTo(i, coordinateY); else context2d.lineTo(i, coordinateY);
                 }
-                ctx.stroke(); phase += 0.04; animationFrameId = requestAnimationFrame(draw);
+                context2d.stroke();
+                vectorPhase += 0.05;
+                visualizerId = requestAnimationFrame(renderFrame);
             }
-            draw();
+            renderFrame();
         }
 
         window.onload = () => {
-            nativePlayer = document.getElementById('tgSecureAudioEngine');
-            buildRecommendations();
-            renderTracksDOM(curatedRecommendations, 'songsResultsOutput');
+            setupCuratedMatrix();
+            compileDeckDOM(nativeCuratedData, 'globalStreamOutput');
         };
     </script>
 </body>
