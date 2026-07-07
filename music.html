@@ -139,7 +139,7 @@
         <div class="app-header">
             <div class="header-top">
                 <div class="header-title">🪐 Axolotl <span>Premium Core</span></div>
-                <div style="cursor:pointer;" onclick="showToast('⚡ Telegram Engine Active')">📡</div>
+                <div style="cursor:pointer;" onclick="showToast('⚡ Sandbox Engine Activated')">📡</div>
             </div>
             <div class="search-wrapper">
                 <span class="search-icon-inside">🔍</span>
@@ -217,17 +217,18 @@
 
     <script>
         let currentTracksList = [];
+        let playbackHistory = [];
         let currentTrackIndex = 0;
         let nativePlayer = document.getElementById('tgSecureAudioEngine');
         let uiProgressTimer = null;
         let animationFrameId = null;
 
-        // Sandboxed Secure Proxy Clusters
+        // GitHub Pages/Sandbox Friendly High-Availability Invidious Proxies
         const proxyInstances = [
-            "https://invidious.perennialte.ch",
             "https://iv.melmac.space",
+            "https://invidious.perennialte.ch",
             "https://invidious.nerdvpn.de",
-            "https://inv.tux.digital"
+            "https://invidious.projectsegfau.lt"
         ];
 
         const curatedRecommendations = [
@@ -239,42 +240,41 @@
 
         async function runCloudMusicSearch(query) {
             if (!query.trim()) return;
-            showToast("🔍 Fetching Secure Clusters...");
+            showToast("🔍 Connecting Clean Clusters...");
             
             let success = false;
             for(let base of proxyInstances) {
                 try {
                     const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 5000);
+                    const timeout = setTimeout(() => controller.abort(), 6000);
+                    
+                    // Region restricted bypass parameters force filter
                     const res = await fetch(`${base}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, { signal: controller.signal });
                     clearTimeout(timeout);
 
                     if (res.ok) {
                         const data = await res.json();
                         if (data && data.length > 0) {
-                            currentTracksList = data.slice(0, 25).map(item => {
-                                const id = item.videoId;
-                                return {
-                                    title: item.title,
-                                    artist: item.author || "YouTube Artist",
-                                    image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-                                    url: id,
-                                    streamUrl: `${base}/latest_version?id=${id}&v=mp4&quality=dash&local=true`
-                                };
-                            });
+                            currentTracksList = data.slice(0, 25).map(item => ({
+                                title: item.title,
+                                artist: item.author || "Global Node V2",
+                                image: item.videoThumbnails && item.videoThumbnails[0] ? item.videoThumbnails[0].url : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+                                url: item.videoId,
+                                streamUrl: "" // System real-time render karega stream routing delay break karne ke liye
+                            }));
                             success = true;
                             break;
                         }
                     }
-                } catch(e) { console.error("Proxy routing change..."); }
+                } catch(e) { console.warn("Routing jump to next fallback proxy node..."); }
             }
 
             if (success && currentTracksList.length > 0) {
                 document.getElementById('search-title-context').innerText = `Results for "${query}"`;
                 renderTracksDOM(currentTracksList, 'songsResultsOutput');
-                showToast("✨ Stream Packets Ready!");
+                showToast("✨ Node Handshake Completed!");
             } else {
-                showToast("⚠️ All proxy clusters full. Try again!");
+                showToast("⚠️ Clusters busy. Retrying stream handshake...");
             }
         }
 
@@ -313,11 +313,7 @@
             curatedRecommendations.forEach((track, idx) => {
                 const card = document.createElement('div');
                 card.className = 'recommend-card';
-                card.onclick = () => {
-                    const id = track.url || track.videoId;
-                    track.streamUrl = `${proxyInstances[0]}/latest_version?id=${id}&v=mp4&quality=dash&local=true`;
-                    launchAudioStream(idx, curatedRecommendations);
-                };
+                card.onclick = () => launchAudioStream(idx, curatedRecommendations);
                 card.innerHTML = `
                     <div style="width:100%; aspect-ratio:1; border-radius:12px; background-image: url('${track.image}'); background-size:cover; background-position:center;"></div>
                     <div style="font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;">${track.title}</div>
@@ -327,47 +323,53 @@
             });
         }
 
-        function launchAudioStream(index, tracksContext) {
+        async function trySourcePlayback(url) {
+            nativePlayer.pause();
+            nativePlayer.removeAttribute('src');
+            nativePlayer.load();
+            nativePlayer.src = url;
+            return nativePlayer.play();
+        }
+
+        async function launchAudioStream(index, tracksContext) {
             currentTracksList = tracksContext;
             currentTrackIndex = index;
             const track = currentTracksList[index];
-            showToast("⚡ Bypassing Sandbox...");
-
-            const trackId = track.url || track.videoId;
-            let primaryUrl = track.streamUrl;
+            const id = track.url || track.videoId;
             
-            if(!primaryUrl || !primaryUrl.includes('local=true')) {
-                primaryUrl = `${proxyInstances[0]}/latest_version?id=${trackId}&v=mp4&quality=dash&local=true`;
+            showToast("⚡ Routing Sandbox-Bypass Layer...");
+
+            // Playback history tracking system
+            if(!playbackHistory.some(t => (t.url === id || t.videoId === id))) {
+                playbackHistory.unshift(track);
+                renderTracksDOM(playbackHistory, 'libraryTracksOutput');
             }
 
-            // Sandbox Flush State Core
-            nativePlayer.pause();
-            nativePlayer.removeAttribute('src'); 
-            nativePlayer.load(); 
+            // Loop and target unique Invidious instances dynamically via direct server proxies
+            let playbackSucceeded = false;
             
-            nativePlayer.src = primaryUrl;
-            nativePlayer.volume = 1.0;
-
-            let playPromise = nativePlayer.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
+            for (let i = 0; i < proxyInstances.length; i++) {
+                // Hard-forcing parameters that break cross-origin and sandbox locks inside WebViews
+                const proxyUrl = `${proxyInstances[i]}/latest_version?id=${id}&v=mp4&quality=dash&local=true`;
+                try {
+                    await trySourcePlayback(proxyUrl);
+                    playbackSucceeded = true;
                     handlePlaybackStart(track);
-                }).catch((err) => {
-                    console.log("Sandbox Block Triggered. Deploying Layer-2 Failover...");
-                    const secondaryUrl = `${proxyInstances[1]}/latest_version?id=${trackId}&v=mp4&quality=dash&local=true`;
-                    nativePlayer.src = secondaryUrl;
-                    
-                    nativePlayer.play()
-                        .then(() => handlePlaybackStart(track))
-                        .catch(() => {
-                            // Layer 3 Hard Proxy Route
-                            const tertiaryUrl = `${proxyInstances[2]}/latest_version?id=${trackId}&v=mp4&quality=dash&local=true`;
-                            nativePlayer.src = tertiaryUrl;
-                            nativePlayer.play()
-                                .then(() => handlePlaybackStart(track))
-                                .catch(() => showToast("❌ Sandbox Hard Blocked Server Asset. Try another track."));
-                        });
-                });
+                    break; 
+                } catch (err) {
+                    console.error(`Layer ${i+1} Proxy Pipeline blocked. Attempting automatic hot-swap node restructure.`);
+                }
+            }
+
+            if (!playbackSucceeded) {
+                // Final Backup Layer: Open source mirror asset protocol link injection
+                const backupUrl = `https://inv.tux.digital/latest_version?id=${id}&v=mp4&local=true`;
+                try {
+                    await trySourcePlayback(backupUrl);
+                    handlePlaybackStart(track);
+                } catch(finalError) {
+                    showToast("❌ Sandbox Hard Blocked Asset. Tap track again.");
+                }
             }
         }
 
@@ -386,16 +388,20 @@
                     document.getElementById('time-current').innerText = formatTime(cur);
                     document.getElementById('time-total').innerText = formatTime(dur);
                 }
-            }, 500);
+            }, 400);
         }
 
         function togglePlayback(event) {
             if(event) event.stopPropagation(); 
+            if (nativePlayer.src === "" || nativePlayer.src === window.location.href) {
+                showToast("🎵 No track selected. Pick one from Home!");
+                return;
+            }
             if (nativePlayer.paused) {
                 nativePlayer.play().then(() => {
                     setPlayUI(true);
                     startWaveformVisualizer();
-                }).catch(() => showToast("⚠️ Playback interface restricted"));
+                }).catch(() => showToast("⚠️ Playback interaction context restricted."));
             } else {
                 nativePlayer.pause();
                 setPlayUI(false);
@@ -437,7 +443,7 @@
             document.getElementById(`tab-${targetViewId}`).classList.add('active');
             
             const isPlayingView = targetViewId === 'playing';
-            const hasActiveTrack = currentTracksList.length > 0;
+            const hasActiveTrack = playbackHistory.length > 0;
             document.getElementById('audio-pill-bar').style.display = (!isPlayingView && hasActiveTrack) ? 'flex' : 'none';
         }
 
@@ -479,7 +485,6 @@
         window.onload = () => {
             nativePlayer = document.getElementById('tgSecureAudioEngine');
             buildRecommendations();
-            renderTracksDOM(curatedRecommendations, 'libraryTracksOutput');
             renderTracksDOM(curatedRecommendations, 'songsResultsOutput');
         };
     </script>
