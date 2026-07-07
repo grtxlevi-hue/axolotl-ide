@@ -5,89 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>YT Music Premium Clone</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-black: #030303;
-            --bg-surface: #212121;
-            --yt-red: #ff0000;
+            --bg-black: #070709;
+            --bg-dark-gray: #0f1015;
+            --bg-card: #16181f;
+            --yt-red: #ff2a2a;
+            --accent-glow: rgba(255, 42, 42, 0.2);
             --text-main: #ffffff;
-            --text-muted: #aaa;
+            --text-muted: #8e92a4;
+            --glass-border: rgba(255, 255, 255, 0.05);
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%; width: 100%;
             background-color: var(--bg-black); color: var(--text-main);
-            font-family: 'Roboto', sans-serif; overflow: hidden; display: flex; flex-direction: column;
+            font-family: 'Poppins', sans-serif; overflow: hidden; display: flex; flex-direction: column;
+            -webkit-user-select: none; user-select: none;
         }
 
-        /* YT Music Style Header */
+        /* Modern Top Bar */
         .yt-header {
-            background-color: #000; padding: 10px 16px;
+            background-color: rgba(7, 7, 9, 0.85); padding: 14px 20px;
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid #1f1f1f;
+            border-bottom: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px); z-index: 10;
         }
-        .logo { font-size: 18px; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 6px; }
-        .logo span { color: var(--yt-red); }
+        .logo { font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
+        .logo span { color: var(--yt-red); text-shadow: 0 0 10px var(--accent-glow); }
 
-        /* Real Search Container */
+        /* Sleek Search Bar */
         .search-container {
-            display: flex; align-items: center; background: #1a1a1a;
-            border: 1px solid #333; border-radius: 8px; padding: 4px 12px; width: 50%; max-width: 400px;
+            display: flex; align-items: center; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border); border-radius: 25px; padding: 6px 16px; width: 55%; max-width: 450px;
+            transition: all 0.3s ease;
+        }
+        .search-container:focus-within {
+            border-color: var(--yt-red);
+            box-shadow: 0 0 15px var(--accent-glow);
+            background: rgba(255, 255, 255, 0.06);
         }
         .search-input {
             background: transparent; border: none; color: white; width: 100%;
-            outline: none; font-size: 14px; padding: 6px 0;
+            outline: none; font-size: 14px; font-family: 'Poppins', sans-serif;
         }
         .search-btn {
-            background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;
+            background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 15px;
+            transition: color 0.2s;
         }
+        .search-btn:hover { color: var(--yt-red); }
 
-        /* Workspace Layout */
-        .main-layout { display: flex; flex: 1; height: calc(100% - 140px); overflow: hidden; }
+        /* Layout Architecture */
+        .main-layout { display: flex; flex: 1; height: calc(100% - 150px); overflow: hidden; }
         
+        /* Modern Sidebar */
         .sidebar {
-            width: 200px; background: #000; padding: 15px; display: flex; flex-direction: column; gap: 12px;
-            border-right: 1px solid #1f1f1f; box-sizing: border-box;
+            width: 220px; background: var(--bg-dark-gray); padding: 20px 12px; display: flex; flex-direction: column; gap: 8px;
+            border-right: 1px solid var(--glass-border); box-sizing: border-box;
         }
-        @media (max-width: 600px) {
-            .sidebar { width: 65px; padding: 10px 5px; align-items: center; }
+        @media (max-width: 650px) {
+            .sidebar { width: 70px; padding: 15px 8px; align-items: center; }
             .sidebar span { display: none; }
+            .sidebar #playlist-header { display: none; }
         }
 
         .side-btn {
-            background: transparent; border: none; color: white; padding: 10px;
-            text-align: left; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px; width: 100%;
+            background: transparent; border: none; color: var(--text-muted); padding: 12px 16px;
+            text-align: left; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 12px; width: 100%;
+            display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
         }
-        .side-btn:hover, .side-btn.active { background: #212121; }
+        .side-btn:hover, .side-btn.active { background: rgba(255, 255, 255, 0.05); color: #fff; }
+        .side-btn.active { color: var(--yt-red); font-weight: 600; }
 
-        /* Dynamic Track Explorer Grid */
-        .content-area { flex: 1; padding: 20px; overflow-y: auto; box-sizing: border-box; }
-        .section-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; }
+        /* Smooth Content Stream Explorer */
+        .content-area { 
+            flex: 1; padding: 25px; overflow-y: auto; box-sizing: border-box;
+            background: linear-gradient(135deg, #0e0f14 0%, #070709 100%);
+        }
+        .content-area::-webkit-scrollbar { width: 6px; }
+        .content-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.5px; }
 
+        /* Premium Adaptive Grid */
         .yt-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px;
         }
         .yt-card {
-            background: transparent; padding: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s;
+            background: var(--bg-card); padding: 12px; border-radius: 16px; cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
         }
-        .yt-card:hover { background: #1a1a1a; }
-        .yt-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .yt-title { font-size: 13px; font-weight: 500; margin: 6px 0 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .yt-artist { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .yt-card:hover { 
+            transform: translateY(-5px);
+            background: #1d202a;
+            border-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .yt-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
+        .yt-title { font-size: 14px; font-weight: 600; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
+        .yt-artist { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 8px; }
 
-        /* Bottom Stream Player Bar */
+        .add-playlist-btn {
+            width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border); 
+            color: #fff; font-size: 11px; padding: 6px 0; border-radius: 8px; cursor: pointer; 
+            font-family: 'Poppins', sans-serif; font-weight: 500; transition: all 0.2s;
+        }
+        .yt-card:hover .add-playlist-btn { background: var(--yt-red); border-color: var(--yt-red); box-shadow: 0 0 10px var(--accent-glow); }
+
+        /* Ultra Modern Bottom Floating Player Bar */
         .player-bar {
-            height: 85px; background: #101010; border-top: 1px solid #1f1f1f;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box;
+            height: 95px; background: rgba(15, 16, 21, 0.85); border-top: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-sizing: border-box;
+            backdrop-filter: blur(15px); z-index: 10;
         }
-        .track-info { display: flex; align-items: center; gap: 12px; width: 35%; min-width: 140px; }
-        .track-info img { width: 48px; height: 48px; border-radius: 3px; object-fit: cover; background: #222; }
+        .track-info { display: flex; align-items: center; gap: 14px; width: 35%; min-width: 160px; }
+        .track-info img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: #222; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .track-meta { display: flex; flex-direction: column; overflow: hidden; }
-        .track-name { font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .track-singer { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .track-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; }
+        .track-singer { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .audio-container { width: 40%; display: flex; justify-content: center; }
-        audio { width: 100%; max-width: 450px; filter: invert(1); outline: none; }
+        .audio-container { width: 45%; display: flex; justify-content: center; }
+        audio { width: 100%; max-width: 500px; filter: invert(1) hue-rotate(180deg); outline: none; }
     </style>
 </head>
 <body>
@@ -105,8 +146,8 @@
         <div class="sidebar">
             <button class="side-btn active" onclick="loadTrending()">🏠 <span>Home</span></button>
             <button class="side-btn" onclick="createPlaylist()">➕ <span>New Playlist</span></button>
-            <div style="font-size: 10px; color: var(--text-muted); font-weight: bold; margin-top: 10px;" id="playlist-header">PLAYLISTS</div>
-            <div id="playlist-list" style="display:flex; flex-direction:column; gap:4px;"></div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin: 15px 0 5px 16px; letter-spacing: 1px;" id="playlist-header">PLAYLISTS</div>
+            <div id="playlist-list" style="display:flex; flex-direction:column; gap:4px; width: 100%;"></div>
         </div>
 
         <div class="content-area">
@@ -118,7 +159,7 @@
 
     <div class="player-bar">
         <div class="track-info">
-            <img id="player-art" src="" alt="">
+            <img id="player-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150" alt="" style="display:none;">
             <div class="track-meta">
                 <div class="track-name" id="player-title">No Track Selected</div>
                 <div class="track-singer" id="player-artist">Search and play anything</div>
@@ -127,45 +168,43 @@
         <div class="audio-container">
             <audio id="audio-player" controls src=""></audio>
         </div>
-        <div style="width: 20px;"></div>
+        <div style="width: 20px;" class="desktop-spacer"></div>
     </div>
 
     <script>
-        // --- 🚀 FIX: Updated API Base endpoints with reliable Vercel proxy nodes ---
         const API_BASE = "https://saavn.vercel.app/api";
         let playlists = JSON.parse(localStorage.getItem('yt_playlists')) || {};
 
-        // Initial Setup: Loads trending default query seamlessly
         async function loadTrending() {
+            // Update Tab Highlight Active UI State
+            document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
             document.getElementById('view-title').innerText = "Trending Tracks";
-            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted)'>Loading fresh streams...</div>";
+            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>Loading amazing music...</div>";
             try {
                 let response = await fetch(`${API_BASE}/search/songs?query=Latest%20Songs`);
                 let json = await response.json();
                 if(json.success && json.data && json.data.results) {
                     renderCards(json.data.results);
-                } else {
-                    throw new Error("No data structure");
-                }
+                } else { throw new Error(); }
             } catch (err) {
-                // Fail-safe logic try to pull using backup keywords
                 try {
-                    let response = await fetch(`${API_BASE}/search/songs?query=New`);
+                    let response = await fetch(`${API_BASE}/search/songs?query=Trending`);
                     let json = await response.json();
                     renderCards(json.data.results);
                 } catch(e) {
-                    document.getElementById('songs-container').innerHTML = "<div style='color:#ff4d4d'>API Server under heavy load. Please type your target song in search bar manually up above!</div>";
+                    document.getElementById('songs-container').innerHTML = "<div style='color:var(--yt-red); font-size:14px;'>API Limit exceeded. Search manually using the input bar above!</div>";
                 }
             }
         }
 
-        // Live Global Search Engine Logic
         async function searchMusicAPI() {
             const query = document.getElementById('search-box').value.trim();
             if(!query) return;
 
-            document.getElementById('view-title').innerText = `Search results for: "${query}"`;
-            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted)'>Searching cloud database...</div>";
+            document.getElementById('view-title').innerText = `Search results for "${query}"`;
+            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>Searching the universe...</div>";
 
             try {
                 let res = await fetch(`${API_BASE}/search/songs?query=${encodeURIComponent(query)}`);
@@ -173,33 +212,30 @@
                 if(json.success && json.data && json.data.results && json.data.results.length > 0) {
                     renderCards(json.data.results);
                 } else {
-                    document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted)'>No tracks found. Try different keywords!</div>";
+                    document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>No tracks found. Check spelling or try something else!</div>";
                 }
             } catch (error) {
-                document.getElementById('songs-container').innerHTML = "<div style='color:#ff4d4d'>Network Timeout. Please tap search button again!</div>";
+                document.getElementById('songs-container').innerHTML = "<div style='color:var(--yt-red); font-size:14px;'>Network lag. Tap the search button again!</div>";
             }
         }
 
         function handleKeyPress(e) { if(e.key === 'Enter') searchMusicAPI(); }
 
-        // Dynamic Card Renderer Engine
         function renderCards(songsArray) {
             const container = document.getElementById('songs-container');
             container.innerHTML = "";
 
             if (!songsArray || songsArray.length === 0) {
-                container.innerHTML = "<div style='color:var(--text-muted)'>No tracks found in this category.</div>";
+                container.innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>Empty collection block.</div>";
                 return;
             }
 
             songsArray.forEach(song => {
-                // Fallback check arrays structure for cover image safely
                 let image = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150";
                 if(song.image && song.image.length > 0) {
                     image = song.image[2] ? song.image[2].url : song.image[0].url;
                 }
                 
-                // Fallback check for safe direct download streaming media links
                 let streamUrl = "";
                 if(song.downloadUrl && song.downloadUrl.length > 0) {
                     streamUrl = song.downloadUrl[4] ? song.downloadUrl[4].url : song.downloadUrl[song.downloadUrl.length - 1].url;
@@ -219,17 +255,19 @@
                             <img src="${image}">
                             <div class="yt-title">${song.name}</div>
                             <div class="yt-artist">${sanitizedArtist}</div>
-                            <button style="width:100%; margin-top:6px; background:#292929; border:none; color:white; font-size:10px; padding:4px 0; border-radius:4px; cursor:pointer;" onclick="event.stopPropagation(); addToCustomPlaylist('${song.id}', '${encodeURIComponent(sanitizedTitle)}', '${encodeURIComponent(sanitizedArtist)}', '${image}', '${streamUrl}')">➕ Playlist</button>
+                            <button class="add-playlist-btn" onclick="event.stopPropagation(); addToCustomPlaylist('${song.id}', '${encodeURIComponent(sanitizedTitle)}', '${encodeURIComponent(sanitizedArtist)}', '${image}', '${streamUrl}')">➕ Add to Playlist</button>
                         </div>
                     `;
                 }
             });
         }
 
-        // Direct Audio Play Mechanism
         function streamAudioEngine(url, title, artist, img) {
-            if(!url) return alert("Streaming source link is restricted.");
-            document.getElementById('player-art').src = img;
+            if(!url) return;
+            const artImage = document.getElementById('player-art');
+            artImage.src = img;
+            artImage.style.display = "block";
+            
             document.getElementById('player-title').innerText = decodeURIComponent(title);
             document.getElementById('player-artist').innerText = decodeURIComponent(artist);
 
@@ -239,7 +277,6 @@
             player.play();
         }
 
-        // Playlist Infrastructure Management
         function createPlaylist() {
             let name = prompt("Enter playlist name:"); if(!name || !name.trim()) return;
             let key = name.trim();
@@ -249,24 +286,25 @@
         function syncSidebar() {
             const wrapper = document.getElementById('playlist-list'); wrapper.innerHTML = "";
             Object.keys(playlists).forEach(name => {
-                wrapper.innerHTML += `<button class="side-btn" style="font-size:12px; padding:5px 10px;" onclick="viewPlaylist('${name}')">🎵 <span>${name}</span></button>`;
+                wrapper.innerHTML += `<button class="side-btn" style="font-size:13px; padding:8px 12px;" onclick="viewPlaylist(event, '${name}')">📁 <span>${name}</span></button>`;
             });
         }
 
         function addToCustomPlaylist(id, title, artist, img, url) {
             let listKeys = Object.keys(playlists); if(listKeys.length === 0) return alert("Pehle ek Playlist banayein!");
-            let target = prompt(`Select playlist name:\n\nAvailable playlists: ${listKeys.join(', ')}`);
+            let target = prompt(`Select playlist name:\n\nAvailable lists: ${listKeys.join(', ')}`);
             if(playlists[target]) {
                 if(!playlists[target].some(track => track.id === id)) {
                     playlists[target].push({ id, name: decodeURIComponent(title), primaryArtists: decodeURIComponent(artist), image: [{ url: img }, { url: img }, { url: img }], downloadUrl: [{ url }, { url }, { url }, { url }, { url }] });
-                    savePlaylists(); alert("Song added to checklist!");
-                } else {
-                    alert("Song already inside list.");
-                }
+                    savePlaylists(); alert("Song added to your playlist!");
+                } else { alert("Song already inside list."); }
             }
         }
 
-        function viewPlaylist(name) {
+        function viewPlaylist(event, name) {
+            document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
             document.getElementById('view-title').innerText = `Playlist: ${name}`;
             renderCards(playlists[name] || []);
         }
