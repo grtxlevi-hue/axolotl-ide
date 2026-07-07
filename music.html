@@ -3,261 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Spotify Stream</title>
+    <title>YT Music Cyber Clone</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <style>
         :root {
-            --bg-black: #040404;
-            --bg-cards: #181818;
-            --bg-hover: #282828;
-            --spotify-green: #1ed760;
+            --bg-black: #030303;
+            --bg-surface: #212121;
+            --yt-red: #ff0000;
             --text-main: #ffffff;
-            --text-muted: #b3b3b3;
+            --text-muted: #aaa;
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%; width: 100%;
             background-color: var(--bg-black); color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            overflow: hidden; display: flex; flex-direction: column;
+            font-family: 'Roboto', sans-serif; overflow: hidden; display: flex; flex-direction: column;
         }
 
-        /* Top Spotify Header Navbar */
-        .nav-header {
-            background-color: #000; padding: 12px 16px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #1c1c1c;
+        /* YT Music Style Header */
+        .yt-header {
+            background-color: #000; padding: 10px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #1f1f1f;
         }
-        .logo-text { font-size: 18px; font-weight: bold; color: var(--spotify-green); display: flex; align-items: center; gap: 6px; }
+        .logo { font-size: 18px; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 6px; }
+        .logo span { color: var(--yt-red); }
 
-        /* Main Workspace Layout Split */
-        .main-workspace { display: flex; flex: 1; height: calc(100% - 150px); overflow: hidden; }
+        /* Real Search Container */
+        .search-container {
+            display: flex; align-items: center; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 8px; padding: 4px 12px; width: 50%; max-width: 400px;
+        }
+        .search-input {
+            background: transparent; border: none; color: white; width: 100%;
+            outline: none; font-size: 14px; padding: 6px 0;
+        }
+        .search-btn {
+            background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;
+        }
 
-        /* Sidebar Playlist Panel Component */
-        .music-sidebar {
-            width: 220px; background-color: #000; padding: 15px 10px;
-            display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;
-            border-right: 1px solid #1c1c1c;
+        /* Workspace Layout */
+        .main-layout { display: flex; flex: 1; height: calc(100% - 140px); overflow: hidden; }
+        
+        .sidebar {
+            width: 200px; background: #000; padding: 15px; display: flex; flex-direction: column; gap: 12px;
+            border-right: 1px solid #1f1f1f; box-sizing: border-box;
         }
         @media (max-width: 600px) {
-            .music-sidebar { width: 75px; padding: 10px 4px; align-items: center; }
-            .music-sidebar span { display: none; }
-            .sidebar-btn { padding: 8px !important; text-align: center !important; }
+            .sidebar { width: 65px; padding: 10px 5px; align-items: center; }
+            .sidebar span { display: none; }
         }
 
-        .sidebar-btn {
-            background: #121212; color: white; border: 1px solid #282828;
-            padding: 10px; border-radius: 20px; font-weight: bold; font-size: 12px;
-            cursor: pointer; text-align: left; transition: 0.2s;
+        .side-btn {
+            background: transparent; border: none; color: white; padding: 10px;
+            text-align: left; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px; width: 100%;
         }
-        .sidebar-btn:hover { background: var(--bg-hover); border-color: #fff; }
-        
-        .playlist-scroll-node { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
-        .playlist-item {
-            padding: 10px; border-radius: 4px; font-size: 13px; color: var(--text-muted);
-            cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .playlist-item:hover { color: #fff; background: var(--bg-cards); }
+        .side-btn:hover, .side-btn.active { background: #212121; }
 
-        /* Media Content Stream Explorer Grid */
-        .content-explorer {
-            flex: 1; background: linear-gradient(to bottom, #121e15, var(--bg-black));
-            overflow-y: auto; padding: 20px; box-sizing: border-box;
-        }
-        .section-headline { font-size: 22px; font-weight: bold; margin-bottom: 15px; letter-spacing: -0.5px; }
+        /* Dynamic Track Explorer Grid */
+        .content-area { flex: 1; padding: 20px; overflow-y: auto; box-sizing: border-box; }
+        .section-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; }
 
-        .song-grid-container {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px;
+        .yt-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px;
         }
-        .song-card {
-            background: var(--bg-cards); padding: 14px; border-radius: 8px;
-            cursor: pointer; transition: background 0.3s ease; position: relative;
+        .yt-card {
+            background: transparent; padding: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s;
         }
-        .song-card:hover { background: var(--bg-hover); }
-        .song-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
-        .song-title { font-size: 14px; font-weight: bold; margin: 0 0 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .song-artist { font-size: 12px; color: var(--text-muted); margin: 0; }
-        
-        /* Direct Action Button to insert into user custom list */
-        .add-list-trigger {
-            background: #252525; border: none; color: #fff; font-size: 11px;
-            padding: 4px 8px; border-radius: 12px; margin-top: 8px; cursor: pointer; width: 100%;
-        }
-        .add-list-trigger:hover { background: var(--spotify-green); color: #000; font-weight: bold; }
+        .yt-card:hover { background: #1a1a1a; }
+        .yt-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .yt-title { font-size: 13px; font-weight: 500; margin: 6px 0 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .yt-artist { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* Sticky Bottom Native Media Audio Control Engine Bar */
-        .playback-footer-bar {
-            height: 90px; background-color: #121212; border-top: 1px solid #1c1c1c;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 999;
+        /* Bottom Stream Player Bar */
+        .player-bar {
+            height: 85px; background: #101010; border-top: 1px solid #1f1f1f;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box;
         }
-        .track-display { display: flex; align-items: center; gap: 12px; width: 30%; min-width: 120px; }
-        .track-display img { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; background: #282828; }
-        .meta-data { display: flex; flex-direction: column; overflow: hidden; }
-        .meta-name { font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .meta-artist { font-size: 11px; color: var(--text-muted); }
+        .track-info { display: flex; align-items: center; gap: 12px; width: 35%; min-width: 140px; }
+        .track-info img { width: 48px; height: 48px; border-radius: 3px; object-fit: cover; background: #222; }
+        .track-meta { display: flex; flex-direction: column; overflow: hidden; }
+        .track-name { font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .track-singer { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .audio-wrapper { width: 45%; display: flex; justify-content: center; }
-        audio { width: 100%; max-width: 450px; filter: invert(1) hue-rotate(180deg); outline: none; }
+        .audio-container { width: 40%; display: flex; justify-content: center; }
+        audio { width: 100%; max-width: 450px; filter: invert(1); outline: none; }
     </style>
 </head>
 <body>
 
-    <div class="nav-header">
-        <div class="logo-text">🎵 <span>CyberStream</span></div>
-        <button class="sidebar-btn" style="background: var(--spotify-green); color: black; border: none;" onclick="resetToHome()">🏠 Home</button>
-    </div>
-
-    <div class="main-workspace">
-        <div class="music-sidebar">
-            <button class="sidebar-btn" onclick="triggerCreatePlaylist()">➕ <span>New Playlist</span></button>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: bold; margin-top: 10px; padding-left: 5px;">YOUR PLAYLISTS</div>
-            <div class="playlist-scroll-node" id="sidebar-playlist-wrapper">
-                </div>
-        </div>
-
-        <div class="content-explorer">
-            <div class="section-headline" id="explorer-view-title">Trending Now</div>
-            <div class="song-grid-container" id="global-songs-grid">
-                </div>
+    <div class="yt-header">
+        <div class="logo"><span>🔴</span> Music</div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-box" placeholder="Search songs, artists, albums..." onkeypress="handleKeyPress(event)">
+            <button class="search-btn" onclick="searchMusicAPI()">🔍</button>
         </div>
     </div>
 
-    <div class="playback-footer-bar">
-        <div class="track-display">
-            <img id="current-player-art" src="" alt="">
-            <div class="meta-data">
-                <div class="meta-name" id="current-player-title">No Track Selected</div>
-                <div class="meta-artist" id="current-player-artist">Tap a song from cards</div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <button class="side-btn active" onclick="loadTrending()">🏠 <span>Home</span></button>
+            <button class="side-btn" onclick="createPlaylist()">➕ <span>New Playlist</span></button>
+            <div style="font-size: 10px; color: var(--text-muted); font-weight: bold; margin-top: 10px;" id="playlist-header">PLAYLISTS</div>
+            <div id="playlist-list" style="display:flex; flex-direction:column; gap:4px;"></div>
+        </div>
+
+        <div class="content-area">
+            <div class="section-title" id="view-title">Trending Now</div>
+            <div class="yt-grid" id="songs-container">
+                </div>
+        </div>
+    </div>
+
+    <div class="player-bar">
+        <div class="track-info">
+            <img id="player-art" src="" alt="">
+            <div class="track-meta">
+                <div class="track-name" id="player-title">No Track Selected</div>
+                <div class="track-singer" id="player-artist">Search and play anything</div>
             </div>
         </div>
-
-        <div class="audio-wrapper">
-            <audio id="core-audio-engine" controls src=""></audio>
+        <div class="audio-container">
+            <audio id="audio-player" controls src=""></audio>
         </div>
-        <div style="width: 20%;"></div> </div>
+        <div style="width: 20px;"></div>
+    </div>
 
     <script>
-        // --- 📻 GLOBAL TRACKS MEMORY MATRIX DATABASE ---
-        // (Aap in direct streaming audio .mp3 URL links ko kisi bhi external source se link kar sakte hain)
-        const globalSongsDatabase = [
-            { id: 1, title: "Cyber Horizon", artist: "Synthwave Echo", cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-            { id: 2, title: "Neon Velocity", artist: "Retro Runner X", cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-            { id: 3, title: "Tokyo Drift Phonk", artist: "Drift Overlord", cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            { id: 4, title: "Midnight Drive", artist: "Chillwave Crew", cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" }
-        ];
+        // Open-Source Public Saavn API Instance Endpoint URL
+        const API_BASE = "https://saavn.dev/api";
+        let playlists = JSON.parse(localStorage.getItem('yt_playlists')) || {};
 
-        // Safe client local storage object setup
-        let userPlaylists = JSON.parse(localStorage.getItem('tg_music_playlists')) || {};
-
-        function renderSongsGrid(tracksArray) {
-            const gridNode = document.getElementById('global-songs-grid');
-            gridNode.innerHTML = "";
-            
-            if(tracksArray.length === 0) {
-                gridNode.innerHTML = `<div style="color:var(--text-muted); font-size:14px; grid-column: 1/-1; text-align:center; padding-top:40px;">No songs found inside this catalog layer.</div>`;
-                return;
+        // Initial Boot Setup (Loads trending items or defaults)
+        async function loadTrending() {
+            document.getElementById('view-title').innerText = "Trending Tracks";
+            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted)'>Loading fresh streams...</div>";
+            try {
+                // Fetching from a reliable open music stream catalog source
+                let response = await fetch(`${API_BASE}/search/songs?query=Trending`);
+                let json = await response.json();
+                if(json.success && json.data.results) {
+                    renderCards(json.data.results);
+                }
+            } catch (err) {
+                document.getElementById('songs-container').innerHTML = "<div style='color:red'>API Server Error. Try searching manually above!</div>";
             }
+        }
 
-            tracksArray.forEach(track => {
-                gridNode.innerHTML += `
-                    <div class="song-card" onclick="streamTrackSource(${track.id})">
-                        <img src="${track.cover}">
-                        <div class="song-title">${track.title}</div>
-                        <div class="song-artist">${track.artist}</div>
-                        <button class="add-list-trigger" onclick="event.stopPropagation(); triggerAddSongToPlaylist(${track.id})">➕ Add to List</button>
+        // Live Cloud Global Search Engine Logic
+        async function searchMusicAPI() {
+            const query = document.getElementById('search-box').value.trim();
+            if(!query) return;
+
+            document.getElementById('view-title').innerText = `Search results for: "${query}"`;
+            document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted)'>Searching cloud database...</div>";
+
+            try {
+                let res = await fetch(`${API_BASE}/search/songs?query=${encodeURIComponent(query)}`);
+                let json = await res.json();
+                if(json.success && json.data.results && json.data.results.length > 0) {
+                    renderCards(json.data.results);
+                } else {
+                    document.getElementById('songs-container').innerHTML = "<div style='color:var(--text-muted)'>No tracks found. Try another keywords!</div>";
+                }
+            } catch (error) {
+                document.getElementById('songs-container').innerHTML = "<div style='color:red'>Network Timeout. Please try again!</div>";
+            }
+        }
+
+        function handleKeyPress(e) { if(e.key === 'Enter') searchMusicAPI(); }
+
+        // Dynamic Interface Compiler
+        function renderCards(songsArray) {
+            const container = document.getElementById('songs-container');
+            container.innerHTML = "";
+
+            songsArray.forEach(song => {
+                // Selecting mid-quality image safely from array mapping response
+                let image = song.image && song.image[1] ? song.image[1].url : "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150";
+                // Finding optimal working .mp3 stream quality links safely
+                let streamUrl = song.downloadUrl && song.downloadUrl[2] ? song.downloadUrl[2].url : (song.downloadUrl ? song.downloadUrl[0].url : "");
+                
+                // Sanitizing titles safely for internal onclick bindings 
+                let sanitizedTitle = song.name.replace(/['"]/g, "");
+                let sanitizedArtist = song.artists.primary && song.artists.primary[0] ? song.artists.primary[0].name.replace(/['"]/g, "") : "Unknown Artist";
+
+                container.innerHTML += `
+                    <div class="yt-card" onclick="streamAudioEngine('${streamUrl}', '${sanitizedTitle}', '${sanitizedArtist}', '${image}')">
+                        <img src="${image}">
+                        <div class="yt-title">${song.name}</div>
+                        <div class="yt-artist">${sanitizedArtist}</div>
+                        <button style="width:100%; margin-top:6px; background:#292929; border:none; color:white; font-size:10px; padding:3px 0; border-radius:3px; cursor:pointer;" onclick="event.stopPropagation(); addToCustomPlaylist('${song.id}', '${sanitizedTitle}', '${sanitizedArtist}', '${image}', '${streamUrl}')">➕ Playlist</button>
                     </div>
                 `;
             });
         }
 
-        function streamTrackSource(id) {
-            const trackObj = globalSongsDatabase.find(t => t.id === id);
-            if(!trackObj) return;
+        // Direct Global Play Hook
+        function streamAudioEngine(url, title, artist, img) {
+            if(!url) return alert("Streaming source link unavailable for this specific node item.");
+            document.getElementById('player-art').src = img;
+            document.getElementById('player-title').innerText = title;
+            document.getElementById('player-artist').innerText = artist;
 
-            document.getElementById('current-player-art').src = trackObj.cover;
-            document.getElementById('current-player-title').innerText = trackObj.title;
-            document.getElementById('current-player-artist').innerText = trackObj.artist;
-            
-            const audioEngine = document.getElementById('core-audio-engine');
-            audioEngine.src = trackObj.url;
-            audioEngine.load();
-            audioEngine.play();
+            const player = document.getElementById('audio-player');
+            player.src = url;
+            player.load();
+            player.play();
         }
 
-        function triggerCreatePlaylist() {
-            const playlistName = prompt("Nayi Playlist ka naam likhein:");
-            if(!playlistName || playlistName.trim() === "") return;
-            
-            const sanitizedKey = playlistName.trim();
-            if(!userPlaylists[sanitizedKey]) {
-                userPlaylists[sanitizedKey] = [];
-                savePlaylistsState();
-                syncSidebarPlaylists();
-            } else {
-                alert("Is naam ki playlist pehle se bani hui hai!");
-            }
+        // Playlist Array Compilers (Saves full song object data structures inside user local node memory)
+        function createPlaylist() {
+            let name = prompt("Enter playlist namespace:"); if(!name || !name.trim()) return;
+            let key = name.trim();
+            if(!playlists[key]) { playlists[key] = []; savePlaylists(); syncSidebar(); }
         }
 
-        function syncSidebarPlaylists() {
-            const listWrapper = document.getElementById('sidebar-playlist-wrapper');
-            listWrapper.innerHTML = "";
-            Object.keys(userPlaylists).forEach(name => {
-                listWrapper.innerHTML += `
-                    <div class="playlist-item" onclick="viewSpecificPlaylist('${name}')">🎵 <span>${name}</span></div>
-                `;
+        function syncSidebar() {
+            const wrapper = document.getElementById('playlist-list'); wrapper.innerHTML = "";
+            Object.keys(playlists).forEach(name => {
+                wrapper.innerHTML += `<button class="side-btn" style="font-size:12px; padding:5px 10px;" onclick="viewPlaylist('${name}')">🎵 <span>${name}</span></button>`;
             });
         }
 
-        function viewSpecificPlaylist(name) {
-            document.getElementById('explorer-view-title').innerText = `Playlist: ${name}`;
-            const targetIds = userPlaylists[name] || [];
-            const songsInPlaylist = globalSongsDatabase.filter(s => targetIds.includes(s.id));
-            renderSongsGrid(songsInPlaylist);
-        }
-
-        function triggerAddSongToPlaylist(songId) {
-            const playlistKeys = Object.keys(userPlaylists);
-            if(playlistKeys.length === 0) {
-                alert("Aapke paas koi playlist nahi hai. Pehle 'New Playlist' button daba kar ek banayein!");
-                return;
-            }
-            
-            const selectedList = prompt(`Kiski playlist mein gaana jodna hai? Likhein:\n\nAvailable lists: ${playlistKeys.join(', ')}`);
-            if(!selectedList) return;
-
-            if(userPlaylists[selectedList]) {
-                if(!userPlaylists[selectedList].includes(songId)) {
-                    userPlaylists[selectedList].push(songId);
-                    savePlaylistsState();
-                    alert(`Song ko '${selectedList}' mein add kar diya gaya hai!`);
-                } else {
-                    alert("Ye gaana is playlist mein pehle se maujood hai.");
+        function addToCustomPlaylist(id, title, artist, img, url) {
+            let listKeys = Object.keys(playlists); if(listKeys.length === 0) return alert("Pehle ek Playlist banayein!");
+            let target = prompt(`Select playlist name:\n\nAvailables: ${listKeys.join(', ')}`);
+            if(playlists[target]) {
+                if(!playlists[target].some(track => track.id === id)) {
+                    playlists[target].push({ id, name: title, artists: { primary: [{ name: artist }] }, image: [{}, { url: img }], downloadUrl: [{}, {}, { url }] });
+                    savePlaylists(); alert("Added successfully!");
                 }
-            } else {
-                alert("Aisi koi playlist nahi mili. Kripya sahi naam type karein.");
             }
         }
 
-        function resetToHome() {
-            document.getElementById('explorer-view-title').innerText = "Trending Now";
-            renderSongsGrid(globalSongsDatabase);
+        function viewPlaylist(name) {
+            document.getElementById('view-title').innerText = `Playlist: ${name}`;
+            renderCards(playlists[name] || []);
         }
 
-        function savePlaylistsState() {
-            localStorage.setItem('tg_music_playlists', JSON.stringify(userPlaylists));
-        }
+        function savePlaylists() { localStorage.setItem('yt_playlists', JSON.stringify(playlists)); }
 
-        // Bootstrapping operations init
-        window.onload = () => {
-            renderSongsGrid(globalSongsDatabase);
-            syncSidebarPlaylists();
-            // Initialize Telegram WebApp properties if active
-            if(window.Telegram && window.Telegram.WebApp) {
-                Telegram.WebApp.ready();
-                Telegram.WebApp.expand();
-            }
-        };
+        window.onload = () => { loadTrending(); syncSidebar(); Telegram.WebApp.ready(); Telegram.WebApp.expand(); }
     </script>
 </body>
 </html>
