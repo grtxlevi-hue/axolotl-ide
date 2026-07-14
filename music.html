@@ -264,6 +264,15 @@
         let isJoinedInRoom = false;
         let syncIntervalWorker = null;
 
+        // Invidious Open Source Instances list for Failover / Backup System
+        const invidiousInstances = [
+            "https://vid.puffyan.us",
+            "https://yewtu.be",
+            "https://invidious.nerdvpn.de",
+            "https://invidious.flokinet.to"
+        ];
+        let currentInstanceIndex = 0;
+
         const curatedRecommendations = [
             { title: "Softly", artist: "Karan Aujla", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400", url: "https://pub-c5e31b5cdafb419a99116db0edd49129.r2.dev/softly_karan_aujla.mp3" },
             { title: "Mi Amor", artist: "Sharn", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400", url: "https://pub-c5e31b5cdafb419a99116db0edd49129.r2.dev/mi_amor_sharn.mp3" },
@@ -271,13 +280,12 @@
             { title: "Starboy", artist: "The Weeknd", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400", url: "https://pub-c5e31b5cdafb419a99116db0edd49129.r2.dev/starboy_the_weeknd.mp3" }
         ];
 
-        // 🚀 MULTI-SERVER BACKUP ENGINE: Guarantees Bollywood/Regional track retrieval
+        // 🚀 UPGRADED MULTI-SERVER ENGINE: Now includes Invidious Open-Source Network Fallback
         async function runCloudMusicSearch(query) {
             if (!query.trim()) return;
             showToast("🔍 Searching Server 1 (JioSaavn Core)...");
             
             try {
-                // SERVER 1: Primary open API node
                 const res = await fetch(`https://saavn.me/api/search/songs?query=${encodeURIComponent(query)}&limit=15`);
                 const responseData = await res.json();
                 
@@ -285,10 +293,9 @@
                     processServerData(responseData.data.results);
                     return;
                 }
-                throw new Error("Server 1 missed, switching to backup...");
+                throw new Error("Server 1 missed.");
             } catch (err) {
                 console.log(err.message);
-                // SERVER 2: Secondary mirror backup node (Handles specific Bollywood tracks flawlessly)
                 showToast("⚡ Querying Server 2 (JioSaavn Global Mirror)...");
                 try {
                     const res2 = await fetch(`https://jiosaavn-api-beta.vercel.app/api/search/songs?query=${encodeURIComponent(query)}&limit=12`);
@@ -298,14 +305,44 @@
                         processServerData(responseData2.data.results);
                         return;
                     }
+                    throw new Error("Server 2 missed.");
                 } catch(err2) {
-                    // SERVER 3: iTunes open database layer fallback
-                    showToast("📡 Final Fallback: Server 3 Activation...");
+                    showToast("📡 Activating Open Source Invidious Engine...");
                     try {
-                        const res3 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=12`);
+                        // Free & Open-Source YouTube scraping fallback (No Quota Limit, No API Key)
+                        let activeBaseUrl = invidiousInstances[currentInstanceIndex];
+                        const res3 = await fetch(`${activeBaseUrl}/api/v1/search?q=${encodeURIComponent(query)}&type=video`);
                         const data3 = await res3.json();
-                        if (data3.results && data3.results.length > 0) {
-                            currentTracksList = data3.results.map(item => ({
+
+                        if (data3 && data3.length > 0) {
+                            currentTracksList = data3.map(item => ({
+                                title: item.title,
+                                artist: item.author || "YouTube Artist",
+                                image: item.videoThumbnails?.find(t => t.quality === 'high')?.url || (item.videoThumbnails && item.videoThumbnails[0]?.url) || "",
+                                // Custom attribute to fetch fresh streaming link on-demand when clicked
+                                videoId: item.videoId,
+                                isYoutubeFallback: true,
+                                url: "" // Will be populated dynamically upon selection
+                            }));
+                            
+                            document.getElementById('search-title-context').innerText = `Results for "${document.getElementById('spotifySearchInput').value}"`;
+                            renderTracksDOM(currentTracksList, 'songsResultsOutput');
+                            showToast("✨ Open Source Stream Loaded!");
+                            return;
+                        }
+                    } catch(e) {
+                        // Failover: Shift to next instance if current one fails
+                        currentInstanceIndex = (currentInstanceIndex + 1) % invidiousInstances.length;
+                        console.log("Switching Invidious Instance due to failure...");
+                    }
+                    
+                    // Final Ultimate Fallback
+                    showToast("📡 Final Fallback: Server 4 Activation...");
+                    try {
+                        const res4 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=12`);
+                        const data4 = await res4.json();
+                        if (data4.results && data4.results.length > 0) {
+                            currentTracksList = data4.results.map(item => ({
                                 title: item.trackName,
                                 artist: item.artistName,
                                 image: item.artworkUrl100.replace("100x100bb", "500x500bb"),
@@ -315,7 +352,7 @@
                             showToast("✨ Full Song Pool Loaded!");
                             return;
                         }
-                    } catch(e) {}
+                    } catch(e2) {}
                 }
                 showToast("❌ Song not found in any active database.");
             }
@@ -323,7 +360,6 @@
 
         function processServerData(results) {
             currentTracksList = results.map(item => {
-                // Always extracting the highest available audio quality node securely
                 let downloadArray = item.downloadUrl || item.download_url;
                 let imageArray = item.image || item.image_url;
                 
@@ -388,10 +424,41 @@
             });
         }
 
-        function launchAudioStream(index, tracksContext) {
+        // Modified launchAudioStream to handle Dynamic On-Demand link extraction for Invidious
+        async function launchAudioStream(index, tracksContext) {
             currentTracksList = tracksContext;
             currentTrackIndex = index;
             const track = currentTracksList[index];
+
+            showToast("🎵 Buffering Stream...");
+
+            // If it's an Invidious YouTube fallback, extract the direct playable audio link first
+            if(track.isYoutubeFallback && !track.url) {
+                try {
+                    let baseUrl = invidiousInstances[currentInstanceIndex];
+                    const res = await fetch(`${baseUrl}/api/v1/videos/${track.videoId}`);
+                    const videoDetails = await res.json();
+                    
+                    // Filter adaptive formats to extract only high quality audio streams securely
+                    if(videoDetails.adaptiveFormats) {
+                        const audioStreams = videoDetails.adaptiveFormats.filter(f => f.type.startsWith('audio/'));
+                        if(audioStreams.length > 0) {
+                            // Select highest audio quality available
+                            track.url = audioStreams[0].url; 
+                        }
+                    }
+                    
+                    if(!track.url && videoDetails.formatStreams) {
+                        track.url = videoDetails.formatStreams[0].url;
+                    }
+                    
+                    if(!track.url) throw new Error("Audio URL not found in metadata layout.");
+                } catch(err) {
+                    showToast("❌ Current Node Failed. Re-trying alternate stream...");
+                    currentInstanceIndex = (currentInstanceIndex + 1) % invidiousInstances.length;
+                    return;
+                }
+            }
 
             audioNodeInstance.src = track.url;
             audioNodeInstance.load();
@@ -442,6 +509,11 @@
                 document.getElementById('player-art').innerText = "";
                 document.getElementById('pill-art-icon').style.backgroundImage = `url('${track.image}')`;
                 document.getElementById('pill-art-icon').innerText = "";
+            } else {
+                document.getElementById('player-art').style.backgroundImage = "none";
+                document.getElementById('player-art').innerText = "🎵";
+                document.getElementById('pill-art-icon').style.backgroundImage = "none";
+                document.getElementById('pill-art-icon').innerText = "🎵";
             }
             document.getElementById('pill-track-name').innerText = track.title;
             document.getElementById('pill-track-artist').innerText = track.artist;
